@@ -3,7 +3,6 @@ import { loadEntries, addEntry, updateEntry, deleteEntry, todayISO } from './lib
 import { getExerciseCatalog } from './lib/exercises'
 import HomeView from './components/HomeView'
 import PlanView from './components/PlanView'
-import HistoryView from './components/HistoryView'
 import LogExerciseView from './components/LogExerciseView'
 import ExerciseForm from './components/ExerciseForm'
 
@@ -14,6 +13,7 @@ function App() {
   const [editReturnScreen, setEditReturnScreen] = useState('home')
 
   const today = useMemo(() => todayISO(), [])
+  const [selectedDate, setSelectedDate] = useState(today)
   const catalog = useMemo(() => getExerciseCatalog(entries), [entries])
   const activeEntry = entries.find((e) => e.id === activeEntryId) ?? null
 
@@ -58,7 +58,7 @@ function App() {
     content = (
       <PlanView
         entries={entries}
-        today={today}
+        initialDate={selectedDate}
         catalog={catalog}
         onAddExercise={handleAdd}
         onEdit={(entry) => openEdit(entry, 'plan')}
@@ -75,7 +75,7 @@ function App() {
         <h1 className="page-title">Log exercise</h1>
         <ExerciseForm
           mode="log"
-          date={today}
+          date={selectedDate}
           catalog={catalog}
           onSave={(entryData) => {
             handleAdd(entryData)
@@ -117,15 +117,13 @@ function App() {
         />
       </div>
     )
-  } else if (screen === 'history') {
-    content = (
-      <HistoryView entries={entries} onEdit={(entry) => openEdit(entry, 'history')} onDelete={handleDelete} onBack={goHome} />
-    )
   } else {
     content = (
       <HomeView
         entries={entries}
         today={today}
+        selectedDate={selectedDate}
+        onDateChange={setSelectedDate}
         onStartPlan={() => setScreen('plan')}
         onLogFly={() => setScreen('log-fly')}
         onOpenLog={openLog}
@@ -135,25 +133,9 @@ function App() {
     )
   }
 
-  const showTabs = screen === 'home' || screen === 'history'
-
   return (
     <div className="app">
       <main className="app__content">{content}</main>
-      {showTabs && (
-        <nav className="tab-bar">
-          <button type="button" className={`tab-bar__btn ${screen === 'home' ? 'is-active' : ''}`} onClick={goHome}>
-            Today
-          </button>
-          <button
-            type="button"
-            className={`tab-bar__btn ${screen === 'history' ? 'is-active' : ''}`}
-            onClick={() => setScreen('history')}
-          >
-            History
-          </button>
-        </nav>
-      )}
     </div>
   )
 }

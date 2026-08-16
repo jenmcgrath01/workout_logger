@@ -2,8 +2,8 @@ import { useState } from 'react'
 import ExerciseForm from './ExerciseForm'
 import EntryCard from './EntryCard'
 
-export default function PlanView({ entries, today, catalog, onAddExercise, onEdit, onDelete, onDone }) {
-  const [sessionDate, setSessionDate] = useState(today)
+export default function PlanView({ entries, initialDate, catalog, onAddExercise, onEdit, onDelete, onDone }) {
+  const [sessionDate, setSessionDate] = useState(initialDate)
   const [adding, setAdding] = useState(false)
 
   const plannedForSession = entries.filter((e) => e.date === sessionDate && e.status === 'planned')

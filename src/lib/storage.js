@@ -48,3 +48,13 @@ export function todayISO() {
   const tzOffsetMs = d.getTimezoneOffset() * 60000
   return new Date(d.getTime() - tzOffsetMs).toISOString().slice(0, 10)
 }
+
+export function addDays(dateISO, delta) {
+  const [y, m, d] = dateISO.split('-').map(Number)
+  const date = new Date(y, m - 1, d)
+  date.setDate(date.getDate() + delta)
+  const yyyy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}

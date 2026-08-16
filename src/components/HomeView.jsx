@@ -7,6 +7,7 @@ export default function HomeView({ entries, today, onStartPlan, onLogFly, onOpen
 
   return (
     <div className="home-view">
+      <p className="app-title">Workout Tracker</p>
       <h1 className="page-title">Today</h1>
 
       <div className="home-view__actions">

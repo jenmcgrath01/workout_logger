@@ -32,7 +32,15 @@ export default function LogExerciseView({ entry, onPersist, onComplete, onBack }
 
       <div className="set-list">
         {sets.map((s, i) => (
-          <SetRow key={i} index={i} set={s} showTargetInputs={false} showActualInputs onChange={(patch) => updateSet(i, patch)} />
+          <SetRow
+            key={i}
+            index={i}
+            set={s}
+            showTargetInputs={false}
+            showActualInputs
+            showWeight={!entry.bodyweight}
+            onChange={(patch) => updateSet(i, patch)}
+          />
         ))}
       </div>
 

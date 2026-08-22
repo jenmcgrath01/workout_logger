@@ -1,3 +1,10 @@
+function formatSet(set, bodyweight, prefix) {
+  const reps = set[`${prefix}Reps`]
+  if (bodyweight) return `${reps ?? '–'} reps`
+  const weight = set[`${prefix}Weight`]
+  return `${weight ?? '–'} lbs × ${reps ?? '–'}`
+}
+
 export default function EntryCard({ entry, onLog, onEdit, onDelete }) {
   const isPlanned = entry.status === 'planned'
 
@@ -9,22 +16,23 @@ export default function EntryCard({ entry, onLog, onEdit, onDelete }) {
       </div>
 
       <ul className="entry-card__sets">
-        {entry.sets.map((s, i) => (
-          <li key={i}>
-            {isPlanned ? (
-              <>
-                {s.targetWeight ?? '–'} lbs × {s.targetReps ?? '–'}
-              </>
-            ) : (
-              <>
-                {s.actualWeight ?? '–'} lbs × {s.actualReps ?? '–'}
-                {(s.targetWeight != null || s.targetReps != null) && (
-                  <span className="entry-card__target"> (target {s.targetWeight ?? '–'}×{s.targetReps ?? '–'})</span>
-                )}
-              </>
-            )}
-          </li>
-        ))}
+        {entry.sets.map((s, i) => {
+          const hasTarget = entry.bodyweight ? s.targetReps != null : s.targetWeight != null || s.targetReps != null
+          return (
+            <li key={i}>
+              {isPlanned ? (
+                formatSet(s, entry.bodyweight, 'target')
+              ) : (
+                <>
+                  {formatSet(s, entry.bodyweight, 'actual')}
+                  {hasTarget && (
+                    <span className="entry-card__target"> (target {formatSet(s, entry.bodyweight, 'target')})</span>
+                  )}
+                </>
+              )}
+            </li>
+          )
+        })}
       </ul>
 
       {entry.notes && <p className="entry-card__notes">{entry.notes}</p>}

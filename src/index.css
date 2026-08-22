@@ -201,6 +201,21 @@ body {
   margin-bottom: 6px;
 }
 
+.field--checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 0.95rem;
+}
+
+.field--checkbox input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+
 .input {
   width: 100%;
   background: var(--surface-2);

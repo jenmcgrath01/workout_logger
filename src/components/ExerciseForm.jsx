@@ -14,10 +14,18 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
   const [exerciseName, setExerciseName] = useState(entry?.exerciseName ?? '')
   const [entryDate, setEntryDate] = useState(entry?.date ?? date)
   const [notes, setNotes] = useState(entry?.notes ?? '')
+  const [bodyweight, setBodyweight] = useState(entry?.bodyweight ?? false)
   const [sets, setSets] = useState(entry?.sets?.length ? entry.sets : [emptySet()])
 
   function updateSet(i, patch) {
     setSets((prev) => prev.map((s, idx) => (idx === i ? { ...s, ...patch } : s)))
+  }
+
+  function toggleBodyweight(checked) {
+    setBodyweight(checked)
+    if (checked) {
+      setSets((prev) => prev.map((s) => ({ ...s, targetWeight: null, actualWeight: null })))
+    }
   }
 
   function addSet() {
@@ -43,6 +51,7 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
       exerciseName: exerciseName.trim(),
       date: mode === 'plan' ? date : entryDate,
       notes,
+      bodyweight,
       sets: cleanedSets,
       status: mode === 'log' ? 'completed' : entry?.status ?? 'planned',
     })
@@ -53,6 +62,11 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
       <label className="field">
         <span className="field__label">Exercise</span>
         <ExerciseAutocomplete value={exerciseName} onChange={setExerciseName} catalog={catalog} />
+      </label>
+
+      <label className="field field--checkbox">
+        <input type="checkbox" checked={bodyweight} onChange={(e) => toggleBodyweight(e.target.checked)} />
+        <span>Bodyweight, no weight</span>
       </label>
 
       {mode !== 'plan' && (
@@ -72,6 +86,7 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
               set={s}
               showTargetInputs={usesTargetInputs}
               showActualInputs={usesActualInputs}
+              showWeight={!bodyweight}
               onChange={(patch) => updateSet(i, patch)}
               onRemove={sets.length > 1 ? () => removeSet(i) : undefined}
             />

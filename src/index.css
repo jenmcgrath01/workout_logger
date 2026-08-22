@@ -357,6 +357,49 @@ textarea.input {
   font-size: 0.9rem;
 }
 
+/* Rest card */
+.rest-card__target,
+.rest-card__result {
+  color: var(--text-dim);
+  font-size: 1.1rem;
+  margin: 0 0 10px;
+}
+
+.rest-card__timer {
+  font-size: 2.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin: 0 0 10px;
+}
+
+.rest-card__timer--over {
+  color: var(--danger);
+}
+
+/* Rest form */
+.rest-form__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rest-form__presets .btn {
+  padding: 10px 14px;
+  min-height: 40px;
+  font-size: 0.9rem;
+}
+
+.rest-form__presets .btn.is-selected {
+  background: var(--accent);
+  color: white;
+}
+
+.plan-view__add-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 /* Log view */
 .log-view__title {
   font-size: 1.3rem;

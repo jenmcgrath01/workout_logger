@@ -1,4 +1,5 @@
 import EntryCard from './EntryCard'
+import RestCard from './RestCard'
 import { addDays } from '../lib/storage'
 
 function formatDateLabel(dateISO, today) {
@@ -9,7 +10,20 @@ function formatDateLabel(dateISO, today) {
   return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
-export default function HomeView({ entries, today, selectedDate, onDateChange, onStartPlan, onLogFly, onOpenLog, onEdit, onDelete }) {
+export default function HomeView({
+  entries,
+  today,
+  selectedDate,
+  onDateChange,
+  onStartPlan,
+  onLogFly,
+  onOpenLog,
+  onEdit,
+  onDelete,
+  onStartRest,
+  onFinishRest,
+  onCancelRestTimer,
+}) {
   const dayEntries = entries.filter((e) => e.date === selectedDate)
   const planned = dayEntries.filter((e) => e.status === 'planned')
   const completed = dayEntries.filter((e) => e.status === 'completed')
@@ -59,18 +73,34 @@ export default function HomeView({ entries, today, selectedDate, onDateChange, o
       {planned.length > 0 && (
         <section>
           <h2 className="section-title">Planned</h2>
-          {planned.map((entry) => (
-            <EntryCard key={entry.id} entry={entry} onLog={onOpenLog} onEdit={onEdit} onDelete={onDelete} />
-          ))}
+          {planned.map((entry) =>
+            entry.type === 'rest' ? (
+              <RestCard
+                key={entry.id}
+                entry={entry}
+                onStart={onStartRest}
+                onFinish={onFinishRest}
+                onCancelTimer={onCancelRestTimer}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            ) : (
+              <EntryCard key={entry.id} entry={entry} onLog={onOpenLog} onEdit={onEdit} onDelete={onDelete} />
+            )
+          )}
         </section>
       )}
 
       {completed.length > 0 && (
         <section>
           <h2 className="section-title">Completed</h2>
-          {completed.map((entry) => (
-            <EntryCard key={entry.id} entry={entry} onEdit={onEdit} onDelete={onDelete} />
-          ))}
+          {completed.map((entry) =>
+            entry.type === 'rest' ? (
+              <RestCard key={entry.id} entry={entry} onEdit={onEdit} onDelete={onDelete} />
+            ) : (
+              <EntryCard key={entry.id} entry={entry} onEdit={onEdit} onDelete={onDelete} />
+            )
+          )}
         </section>
       )}
 

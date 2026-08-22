@@ -5,6 +5,7 @@ import HomeView from './components/HomeView'
 import PlanView from './components/PlanView'
 import LogExerciseView from './components/LogExerciseView'
 import ExerciseForm from './components/ExerciseForm'
+import RestForm from './components/RestForm'
 
 function App() {
   const [entries, setEntries] = useState(() => loadEntries())
@@ -22,19 +23,36 @@ function App() {
     setEntries(loadEntries())
   }
 
+  function handleAddRest(entryData) {
+    handleAdd({ ...entryData, type: 'rest', status: 'planned', actualSeconds: null, startedAt: null })
+  }
+
   function handlePersist(id, updates) {
     updateEntry(id, updates)
     setEntries(loadEntries())
   }
 
   function handleDelete(entry) {
-    if (!window.confirm(`Delete ${entry.exerciseName}?`)) return
+    const label = entry.type === 'rest' ? 'this rest' : entry.exerciseName
+    if (!window.confirm(`Delete ${label}?`)) return
     deleteEntry(entry.id)
     setEntries(loadEntries())
     if (activeEntryId === entry.id) {
       setActiveEntryId(null)
       setScreen('home')
     }
+  }
+
+  function handleStartRest(entry) {
+    handlePersist(entry.id, { startedAt: Date.now() })
+  }
+
+  function handleFinishRest(entry, actualSeconds) {
+    handlePersist(entry.id, { status: 'completed', actualSeconds })
+  }
+
+  function handleCancelRestTimer(entry) {
+    handlePersist(entry.id, { startedAt: null })
   }
 
   function openLog(entry) {
@@ -61,6 +79,7 @@ function App() {
         initialDate={selectedDate}
         catalog={catalog}
         onAddExercise={handleAdd}
+        onAddRest={handleAddRest}
         onEdit={(entry) => openEdit(entry, 'plan')}
         onDelete={handleDelete}
         onDone={goHome}
@@ -97,6 +116,23 @@ function App() {
         onBack={goHome}
       />
     )
+  } else if (screen === 'edit' && activeEntry && activeEntry.type === 'rest') {
+    content = (
+      <div className="edit-view">
+        <button type="button" className="btn btn--link" onClick={() => setScreen(editReturnScreen)}>
+          ← Back
+        </button>
+        <h1 className="page-title">Edit rest</h1>
+        <RestForm
+          entry={activeEntry}
+          onSave={(entryData) => {
+            handlePersist(activeEntry.id, entryData)
+            setScreen(editReturnScreen)
+          }}
+          onCancel={() => setScreen(editReturnScreen)}
+        />
+      </div>
+    )
   } else if (screen === 'edit' && activeEntry) {
     content = (
       <div className="edit-view">
@@ -129,6 +165,9 @@ function App() {
         onOpenLog={openLog}
         onEdit={(entry) => openEdit(entry, 'home')}
         onDelete={handleDelete}
+        onStartRest={handleStartRest}
+        onFinishRest={handleFinishRest}
+        onCancelRestTimer={handleCancelRestTimer}
       />
     )
   }

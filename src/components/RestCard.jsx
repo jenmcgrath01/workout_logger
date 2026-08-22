@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { formatMMSS } from '../lib/format'
 import { playBeep, unlockAudio } from '../lib/audio'
+import ReorderControls from './ReorderControls'
 
-export default function RestCard({ entry, onStart, onFinish, onCancelTimer, onEdit, onDelete }) {
+export default function RestCard({ entry, onStart, onFinish, onCancelTimer, onEdit, onDelete, onMoveUp, onMoveDown }) {
   const [now, setNow] = useState(Date.now())
   const running = entry.status === 'planned' && entry.startedAt != null
   const beepedRef = useRef(false)
@@ -55,6 +56,7 @@ export default function RestCard({ entry, onStart, onFinish, onCancelTimer, onEd
           </>
         ) : (
           <>
+            <ReorderControls onMoveUp={onMoveUp} onMoveDown={onMoveDown} />
             {entry.status === 'planned' && !running && onStart && (
               <button
                 type="button"

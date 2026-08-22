@@ -4,7 +4,17 @@ import RestForm from './RestForm'
 import EntryCard from './EntryCard'
 import RestCard from './RestCard'
 
-export default function PlanView({ entries, initialDate, catalog, onAddExercise, onAddRest, onEdit, onDelete, onDone }) {
+export default function PlanView({
+  entries,
+  initialDate,
+  catalog,
+  onAddExercise,
+  onAddRest,
+  onEdit,
+  onDelete,
+  onSwap,
+  onDone,
+}) {
   const [sessionDate, setSessionDate] = useState(initialDate)
   const [adding, setAdding] = useState(false)
   const [addingRest, setAddingRest] = useState(false)
@@ -34,13 +44,14 @@ export default function PlanView({ entries, initialDate, catalog, onAddExercise,
         <input className="input" type="date" value={sessionDate} onChange={(e) => setSessionDate(e.target.value)} />
       </label>
 
-      {plannedForSession.map((entry) =>
-        entry.type === 'rest' ? (
-          <RestCard key={entry.id} entry={entry} onEdit={onEdit} onDelete={onDelete} />
-        ) : (
-          <EntryCard key={entry.id} entry={entry} onEdit={onEdit} onDelete={onDelete} />
-        )
-      )}
+      {plannedForSession.map((entry, i) => {
+        const reorder = {
+          onMoveUp: i > 0 ? () => onSwap(entry.id, plannedForSession[i - 1].id) : undefined,
+          onMoveDown: i < plannedForSession.length - 1 ? () => onSwap(entry.id, plannedForSession[i + 1].id) : undefined,
+        }
+        const Card = entry.type === 'rest' ? RestCard : EntryCard
+        return <Card key={entry.id} entry={entry} onEdit={onEdit} onDelete={onDelete} {...reorder} />
+      })}
 
       {adding ? (
         <ExerciseForm mode="plan" date={sessionDate} catalog={catalog} onSave={handleSave} onCancel={() => setAdding(false)} />

@@ -38,6 +38,19 @@ export function updateEntry(id, updates) {
   return next.find((e) => e.id === id)
 }
 
+// Visible order follows array order, so swapping two entries in place is all a
+// reorder needs.
+export function swapEntries(idA, idB) {
+  const entries = loadEntries()
+  const i = entries.findIndex((e) => e.id === idA)
+  const j = entries.findIndex((e) => e.id === idB)
+  if (i === -1 || j === -1) return entries
+  const next = [...entries]
+  ;[next[i], next[j]] = [next[j], next[i]]
+  saveEntries(next)
+  return next
+}
+
 export function deleteEntry(id) {
   const entries = loadEntries()
   saveEntries(entries.filter((e) => e.id !== id))

@@ -357,6 +357,26 @@ textarea.input {
   font-size: 0.9rem;
 }
 
+/* Reorder */
+.reorder {
+  display: flex;
+  gap: 4px;
+  margin-right: 2px;
+}
+
+.entry-card__actions .reorder__btn {
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 0;
+  min-width: 40px;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.entry-card__actions .reorder__btn:disabled {
+  opacity: 0.3;
+}
+
 /* Rest card */
 .rest-card__target,
 .rest-card__result {

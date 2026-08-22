@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { loadEntries, addEntry, updateEntry, deleteEntry, todayISO } from './lib/storage'
+import { loadEntries, addEntry, updateEntry, deleteEntry, swapEntries, todayISO } from './lib/storage'
 import { getExerciseCatalog } from './lib/exercises'
 import HomeView from './components/HomeView'
 import PlanView from './components/PlanView'
@@ -43,6 +43,11 @@ function App() {
     }
   }
 
+  function handleSwap(idA, idB) {
+    swapEntries(idA, idB)
+    setEntries(loadEntries())
+  }
+
   function handleStartRest(entry) {
     handlePersist(entry.id, { startedAt: Date.now() })
   }
@@ -80,6 +85,7 @@ function App() {
         catalog={catalog}
         onAddExercise={handleAdd}
         onAddRest={handleAddRest}
+        onSwap={handleSwap}
         onEdit={(entry) => openEdit(entry, 'plan')}
         onDelete={handleDelete}
         onDone={goHome}

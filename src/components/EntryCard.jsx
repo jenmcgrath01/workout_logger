@@ -1,4 +1,5 @@
 import { formatMMSS } from '../lib/format'
+import ReorderControls from './ReorderControls'
 
 function formatSet(set, entry, prefix) {
   if (entry.timed) {
@@ -19,7 +20,7 @@ function hasTargetFor(set, entry) {
   return entry.bodyweight ? count != null : set.targetWeight != null || count != null
 }
 
-export default function EntryCard({ entry, onLog, onEdit, onDelete }) {
+export default function EntryCard({ entry, onLog, onEdit, onDelete, onMoveUp, onMoveDown }) {
   const isPlanned = entry.status === 'planned'
 
   return (
@@ -49,6 +50,7 @@ export default function EntryCard({ entry, onLog, onEdit, onDelete }) {
       {entry.notes && <p className="entry-card__notes">{entry.notes}</p>}
 
       <div className="entry-card__actions">
+        <ReorderControls onMoveUp={onMoveUp} onMoveDown={onMoveDown} />
         {isPlanned && onLog && (
           <button type="button" className="btn btn--primary" onClick={() => onLog(entry)}>
             Log

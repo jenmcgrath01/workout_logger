@@ -2,6 +2,8 @@ import { useState } from 'react'
 import ExerciseAutocomplete from './ExerciseAutocomplete'
 import SetRow from './SetRow'
 
+const DEFAULT_HOLD_SECONDS = 30
+
 function emptySet() {
   return {
     targetWeight: null,
@@ -36,8 +38,19 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
     }
   }
 
+  function toggleTimed(checked) {
+    setTimed(checked)
+    if (checked) {
+      setSets((prev) => prev.map((s) => ({ ...s, targetSeconds: s.targetSeconds ?? DEFAULT_HOLD_SECONDS })))
+    }
+  }
+
   function addSet() {
-    setSets((prev) => [...prev, prev.length ? { ...prev[prev.length - 1] } : emptySet()])
+    setSets((prev) => {
+      const base = prev.length ? { ...prev[prev.length - 1] } : emptySet()
+      if (timed) base.targetSeconds = base.targetSeconds ?? DEFAULT_HOLD_SECONDS
+      return [...prev, base]
+    })
   }
 
   function removeSet(i) {
@@ -81,7 +94,7 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
       </label>
 
       <label className="field field--checkbox">
-        <input type="checkbox" checked={timed} onChange={(e) => setTimed(e.target.checked)} />
+        <input type="checkbox" checked={timed} onChange={(e) => toggleTimed(e.target.checked)} />
         <span>Timed hold (plank, hang…)</span>
       </label>
 

@@ -47,12 +47,11 @@ export default function SetRow({
 
       {showActualInputs && (
         <div className="set-row__fields">
-          {!showTargetInputs && hasTarget && (
+          {/* Timed sets carry their unit in the "sec" suffix instead, so this
+              label would just repeat it. */}
+          {!showTargetInputs && !timed && hasTarget && (
             <span className="set-row__target">
-              target{' '}
-              {showWeight
-                ? `${set.targetWeight ?? '–'} × ${set[`target${countField}`] ?? '–'}`
-                : `${set[`target${countField}`] ?? '–'} ${countPlaceholder}`}
+              target {showWeight ? `${set.targetWeight ?? '–'} × ${set.targetReps ?? '–'}` : `${set.targetReps ?? '–'} reps`}
             </span>
           )}
           {showWeight && (

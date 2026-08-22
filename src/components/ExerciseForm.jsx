@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import ExerciseAutocomplete from './ExerciseAutocomplete'
+import Autocomplete from './Autocomplete'
 import SetRow from './SetRow'
 
 const DEFAULT_HOLD_SECONDS = 30
@@ -85,7 +85,13 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
     <form className="exercise-form" onSubmit={handleSubmit}>
       <label className="field">
         <span className="field__label">Exercise</span>
-        <ExerciseAutocomplete value={exerciseName} onChange={setExerciseName} catalog={catalog} />
+        <Autocomplete
+          value={exerciseName}
+          onChange={setExerciseName}
+          catalog={catalog}
+          placeholder="Exercise name"
+          required
+        />
       </label>
 
       <label className="field field--checkbox">

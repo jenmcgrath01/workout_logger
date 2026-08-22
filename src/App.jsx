@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { loadEntries, addEntry, updateEntry, deleteEntry, swapEntries, todayISO } from './lib/storage'
 import { getExerciseCatalog } from './lib/exercises'
+import { loadThemes, setDayTheme, getThemeCatalog } from './lib/themes'
 import HomeView from './components/HomeView'
 import PlanView from './components/PlanView'
 import LogExerciseView from './components/LogExerciseView'
@@ -16,6 +17,8 @@ function App() {
   const today = useMemo(() => todayISO(), [])
   const [selectedDate, setSelectedDate] = useState(today)
   const catalog = useMemo(() => getExerciseCatalog(entries), [entries])
+  const [themes, setThemes] = useState(() => loadThemes())
+  const themeCatalog = useMemo(() => getThemeCatalog(themes), [themes])
   const activeEntry = entries.find((e) => e.id === activeEntryId) ?? null
 
   function handleAdd(entryData) {
@@ -41,6 +44,10 @@ function App() {
       setActiveEntryId(null)
       setScreen('home')
     }
+  }
+
+  function handleSaveTheme(date, theme) {
+    setThemes({ ...setDayTheme(date, theme) })
   }
 
   function handleSwap(idA, idB) {
@@ -86,6 +93,9 @@ function App() {
         onAddExercise={handleAdd}
         onAddRest={handleAddRest}
         onSwap={handleSwap}
+        themes={themes}
+        themeCatalog={themeCatalog}
+        onSaveTheme={handleSaveTheme}
         onEdit={(entry) => openEdit(entry, 'plan')}
         onDelete={handleDelete}
         onDone={goHome}
@@ -174,6 +184,9 @@ function App() {
         onStartRest={handleStartRest}
         onFinishRest={handleFinishRest}
         onCancelRestTimer={handleCancelRestTimer}
+        theme={themes[selectedDate] ?? ''}
+        themeCatalog={themeCatalog}
+        onSaveTheme={handleSaveTheme}
       />
     )
   }

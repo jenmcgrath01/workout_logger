@@ -141,6 +141,51 @@ body {
   gap: 8px;
 }
 
+/* Day theme */
+.home-view__theme {
+  margin: -4px 0 14px;
+}
+
+.day-theme {
+  display: inline-block;
+  max-width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  min-height: 40px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.day-theme--empty {
+  background: none;
+  border-style: dashed;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.day-theme__editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.day-theme__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.day-theme__actions .btn {
+  flex: 1;
+  padding: 10px 12px;
+  min-height: 42px;
+  font-size: 0.9rem;
+}
+
 .home-view__actions {
   display: flex;
   flex-direction: column;

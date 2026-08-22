@@ -1,5 +1,6 @@
 import EntryCard from './EntryCard'
 import RestCard from './RestCard'
+import DayTheme from './DayTheme'
 import { addDays } from '../lib/storage'
 
 function formatDateLabel(dateISO, today) {
@@ -23,6 +24,9 @@ export default function HomeView({
   onStartRest,
   onFinishRest,
   onCancelRestTimer,
+  theme,
+  themeCatalog,
+  onSaveTheme,
 }) {
   const dayEntries = entries.filter((e) => e.date === selectedDate)
   const planned = dayEntries.filter((e) => e.status === 'planned')
@@ -59,6 +63,10 @@ export default function HomeView({
             Jump to today
           </button>
         )}
+      </div>
+
+      <div className="home-view__theme">
+        <DayTheme date={selectedDate} theme={theme} catalog={themeCatalog} onSave={onSaveTheme} />
       </div>
 
       <div className="home-view__actions">

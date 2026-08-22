@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function ExerciseAutocomplete({ value, onChange, catalog }) {
+export default function Autocomplete({ value, onChange, catalog, placeholder, required = false, autoFocus = false }) {
   const [open, setOpen] = useState(false)
 
   const matches = catalog.filter((name) => name.toLowerCase().includes(value.trim().toLowerCase()))
@@ -23,9 +23,10 @@ export default function ExerciseAutocomplete({ value, onChange, catalog }) {
         }}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        placeholder="Exercise name"
+        placeholder={placeholder}
         autoComplete="off"
-        required
+        required={required}
+        autoFocus={autoFocus}
       />
       {showSuggestions && (
         <ul className="autocomplete__list">

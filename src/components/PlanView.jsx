@@ -3,6 +3,7 @@ import ExerciseForm from './ExerciseForm'
 import RestForm from './RestForm'
 import EntryCard from './EntryCard'
 import RestCard from './RestCard'
+import DayTheme from './DayTheme'
 
 export default function PlanView({
   entries,
@@ -13,6 +14,9 @@ export default function PlanView({
   onEdit,
   onDelete,
   onSwap,
+  themes,
+  themeCatalog,
+  onSaveTheme,
   onDone,
 }) {
   const [sessionDate, setSessionDate] = useState(initialDate)
@@ -43,6 +47,11 @@ export default function PlanView({
         <span className="field__label">Date</span>
         <input className="input" type="date" value={sessionDate} onChange={(e) => setSessionDate(e.target.value)} />
       </label>
+
+      <div className="field">
+        <span className="field__label">Theme</span>
+        <DayTheme date={sessionDate} theme={themes[sessionDate] ?? ''} catalog={themeCatalog} onSave={onSaveTheme} />
+      </div>
 
       {plannedForSession.map((entry, i) => {
         const reorder = {

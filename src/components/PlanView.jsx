@@ -57,7 +57,7 @@ export default function PlanView({ entries, initialDate, catalog, onAddExercise,
         </div>
       )}
 
-      <button type="button" className="btn btn--secondary btn--full" onClick={onDone}>
+      <button type="button" className="btn btn--secondary btn--full plan-view__done" onClick={onDone}>
         Done planning
       </button>
     </div>

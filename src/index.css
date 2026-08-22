@@ -400,6 +400,10 @@ textarea.input {
   gap: 10px;
 }
 
+.plan-view__done {
+  margin-top: 20px;
+}
+
 /* Log view */
 .log-view__title {
   font-size: 1.3rem;

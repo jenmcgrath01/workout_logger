@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import SetRow from './SetRow'
+import TimedSetRow from './TimedSetRow'
 
 export default function LogExerciseView({ entry, onPersist, onComplete, onBack }) {
   const [sets, setSets] = useState(
     entry.sets.map((s) => ({
       ...s,
       actualWeight: s.actualWeight ?? s.targetWeight ?? null,
-      actualReps: s.actualReps ?? s.targetReps ?? null,
+      // A timed hold's actual comes from the timer, so it is not pre-filled.
+      actualReps: entry.timed ? s.actualReps ?? null : s.actualReps ?? s.targetReps ?? null,
     }))
   )
   const [notes, setNotes] = useState(entry.notes ?? '')
@@ -31,17 +33,21 @@ export default function LogExerciseView({ entry, onPersist, onComplete, onBack }
       <h2 className="log-view__title">{entry.exerciseName}</h2>
 
       <div className="set-list">
-        {sets.map((s, i) => (
-          <SetRow
-            key={i}
-            index={i}
-            set={s}
-            showTargetInputs={false}
-            showActualInputs
-            showWeight={!entry.bodyweight}
-            onChange={(patch) => updateSet(i, patch)}
-          />
-        ))}
+        {sets.map((s, i) =>
+          entry.timed ? (
+            <TimedSetRow key={i} index={i} set={s} onChange={(patch) => updateSet(i, patch)} />
+          ) : (
+            <SetRow
+              key={i}
+              index={i}
+              set={s}
+              showTargetInputs={false}
+              showActualInputs
+              showWeight={!entry.bodyweight}
+              onChange={(patch) => updateSet(i, patch)}
+            />
+          )
+        )}
       </div>
 
       <label className="field">

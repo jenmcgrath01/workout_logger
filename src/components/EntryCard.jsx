@@ -1,8 +1,22 @@
-function formatSet(set, bodyweight, prefix) {
+import { formatMMSS } from '../lib/format'
+
+function formatSet(set, entry, prefix) {
+  if (entry.timed) {
+    const secs = set[`${prefix}Seconds`]
+    const hold = secs == null ? '–' : formatMMSS(secs)
+    if (entry.bodyweight) return hold
+    const weight = set[`${prefix}Weight`]
+    return weight == null ? hold : `${weight} lbs × ${hold}`
+  }
   const reps = set[`${prefix}Reps`]
-  if (bodyweight) return `${reps ?? '–'} reps`
+  if (entry.bodyweight) return `${reps ?? '–'} reps`
   const weight = set[`${prefix}Weight`]
   return `${weight ?? '–'} lbs × ${reps ?? '–'}`
+}
+
+function hasTargetFor(set, entry) {
+  const count = entry.timed ? set.targetSeconds : set.targetReps
+  return entry.bodyweight ? count != null : set.targetWeight != null || count != null
 }
 
 export default function EntryCard({ entry, onLog, onEdit, onDelete }) {
@@ -16,23 +30,20 @@ export default function EntryCard({ entry, onLog, onEdit, onDelete }) {
       </div>
 
       <ul className="entry-card__sets">
-        {entry.sets.map((s, i) => {
-          const hasTarget = entry.bodyweight ? s.targetReps != null : s.targetWeight != null || s.targetReps != null
-          return (
-            <li key={i}>
-              {isPlanned ? (
-                formatSet(s, entry.bodyweight, 'target')
-              ) : (
-                <>
-                  {formatSet(s, entry.bodyweight, 'actual')}
-                  {hasTarget && (
-                    <span className="entry-card__target"> (target {formatSet(s, entry.bodyweight, 'target')})</span>
-                  )}
-                </>
-              )}
-            </li>
-          )
-        })}
+        {entry.sets.map((s, i) => (
+          <li key={i}>
+            {isPlanned ? (
+              formatSet(s, entry, 'target')
+            ) : (
+              <>
+                {formatSet(s, entry, 'actual')}
+                {hasTargetFor(s, entry) && (
+                  <span className="entry-card__target"> (target {formatSet(s, entry, 'target')})</span>
+                )}
+              </>
+            )}
+          </li>
+        ))}
       </ul>
 
       {entry.notes && <p className="entry-card__notes">{entry.notes}</p>}

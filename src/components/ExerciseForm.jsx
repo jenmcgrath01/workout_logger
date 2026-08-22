@@ -3,7 +3,14 @@ import ExerciseAutocomplete from './ExerciseAutocomplete'
 import SetRow from './SetRow'
 
 function emptySet() {
-  return { targetWeight: null, targetReps: null, actualWeight: null, actualReps: null }
+  return {
+    targetWeight: null,
+    targetReps: null,
+    targetSeconds: null,
+    actualWeight: null,
+    actualReps: null,
+    actualSeconds: null,
+  }
 }
 
 export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCancel }) {
@@ -15,6 +22,7 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
   const [entryDate, setEntryDate] = useState(entry?.date ?? date)
   const [notes, setNotes] = useState(entry?.notes ?? '')
   const [bodyweight, setBodyweight] = useState(entry?.bodyweight ?? false)
+  const [timed, setTimed] = useState(entry?.timed ?? false)
   const [sets, setSets] = useState(entry?.sets?.length ? entry.sets : [emptySet()])
 
   function updateSet(i, patch) {
@@ -43,8 +51,10 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
     const cleanedSets = sets.map((s) => ({
       targetWeight: s.targetWeight ?? null,
       targetReps: s.targetReps ?? null,
+      targetSeconds: s.targetSeconds ?? null,
       actualWeight: s.actualWeight ?? null,
       actualReps: s.actualReps ?? null,
+      actualSeconds: s.actualSeconds ?? null,
     }))
 
     onSave({
@@ -52,6 +62,7 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
       date: mode === 'plan' ? date : entryDate,
       notes,
       bodyweight,
+      timed,
       sets: cleanedSets,
       status: mode === 'log' ? 'completed' : entry?.status ?? 'planned',
     })
@@ -69,6 +80,11 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
         <span>Bodyweight, no weight</span>
       </label>
 
+      <label className="field field--checkbox">
+        <input type="checkbox" checked={timed} onChange={(e) => setTimed(e.target.checked)} />
+        <span>Timed hold (plank, hang…)</span>
+      </label>
+
       {mode !== 'plan' && (
         <label className="field">
           <span className="field__label">Date</span>
@@ -77,7 +93,7 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
       )}
 
       <div className="field">
-        <span className="field__label">Sets</span>
+        <span className="field__label">{timed ? 'Sets — hold time in seconds' : 'Sets'}</span>
         <div className="set-list">
           {sets.map((s, i) => (
             <SetRow
@@ -87,6 +103,7 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
               showTargetInputs={usesTargetInputs}
               showActualInputs={usesActualInputs}
               showWeight={!bodyweight}
+              timed={timed}
               onChange={(patch) => updateSet(i, patch)}
               onRemove={sets.length > 1 ? () => removeSet(i) : undefined}
             />

@@ -1,5 +1,18 @@
-export default function SetRow({ index, set, showTargetInputs, showActualInputs, showWeight = true, onChange, onRemove }) {
-  const hasTarget = showWeight ? set.targetWeight != null || set.targetReps != null : set.targetReps != null
+export default function SetRow({
+  index,
+  set,
+  showTargetInputs,
+  showActualInputs,
+  showWeight = true,
+  timed = false,
+  onChange,
+  onRemove,
+}) {
+  const countField = timed ? 'Seconds' : 'Reps'
+  const countPlaceholder = timed ? 'secs' : 'reps'
+  const hasTarget = showWeight
+    ? set.targetWeight != null || set[`target${countField}`] != null
+    : set[`target${countField}`] != null
 
   return (
     <div className="set-row">
@@ -24,10 +37,11 @@ export default function SetRow({ index, set, showTargetInputs, showActualInputs,
             className="input input--num"
             type="number"
             inputMode="numeric"
-            placeholder="reps"
-            value={set.targetReps ?? ''}
-            onChange={(e) => onChange({ targetReps: e.target.value === '' ? null : Number(e.target.value) })}
+            placeholder={countPlaceholder}
+            value={set[`target${countField}`] ?? ''}
+            onChange={(e) => onChange({ [`target${countField}`]: e.target.value === '' ? null : Number(e.target.value) })}
           />
+          {timed && <span className="set-row__unit">sec</span>}
         </div>
       )}
 
@@ -35,7 +49,10 @@ export default function SetRow({ index, set, showTargetInputs, showActualInputs,
         <div className="set-row__fields">
           {!showTargetInputs && hasTarget && (
             <span className="set-row__target">
-              target {showWeight ? `${set.targetWeight ?? '–'} × ${set.targetReps ?? '–'}` : `${set.targetReps ?? '–'} reps`}
+              target{' '}
+              {showWeight
+                ? `${set.targetWeight ?? '–'} × ${set[`target${countField}`] ?? '–'}`
+                : `${set[`target${countField}`] ?? '–'} ${countPlaceholder}`}
             </span>
           )}
           {showWeight && (
@@ -55,10 +72,11 @@ export default function SetRow({ index, set, showTargetInputs, showActualInputs,
             className="input input--num"
             type="number"
             inputMode="numeric"
-            placeholder="reps"
-            value={set.actualReps ?? ''}
-            onChange={(e) => onChange({ actualReps: e.target.value === '' ? null : Number(e.target.value) })}
+            placeholder={countPlaceholder}
+            value={set[`actual${countField}`] ?? ''}
+            onChange={(e) => onChange({ [`actual${countField}`]: e.target.value === '' ? null : Number(e.target.value) })}
           />
+          {timed && <span className="set-row__unit">sec</span>}
         </div>
       )}
 

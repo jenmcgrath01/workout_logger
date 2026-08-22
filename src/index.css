@@ -376,6 +376,72 @@ textarea.input {
   color: var(--danger);
 }
 
+/* Timed sets */
+.timed-set {
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.timed-set.is-running {
+  border-color: var(--accent);
+}
+
+.timed-set__top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timed-set__target {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.timed-set__actual {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.timed-set__actual .input--num {
+  width: 72px;
+}
+
+.set-row__unit {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.timed-set__clock {
+  font-size: 2.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  margin: 0;
+}
+
+.timed-set__clock--lead {
+  color: var(--text-dim);
+  font-size: 2rem;
+}
+
+.timed-set__ready {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 /* Rest form */
 .rest-form__presets {
   display: flex;

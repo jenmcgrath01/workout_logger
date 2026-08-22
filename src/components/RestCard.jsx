@@ -1,28 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-
-function formatMMSS(totalSeconds) {
-  const s = Math.max(0, Math.round(totalSeconds))
-  const m = Math.floor(s / 60)
-  const r = s % 60
-  return `${m}:${String(r).padStart(2, '0')}`
-}
-
-function playBeep() {
-  try {
-    const Ctx = window.AudioContext || window.webkitAudioContext
-    const ctx = new Ctx()
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.frequency.value = 880
-    gain.gain.setValueAtTime(0.2, ctx.currentTime)
-    osc.start()
-    osc.stop(ctx.currentTime + 0.3)
-  } catch {
-    // Web Audio unavailable; skip the beep
-  }
-}
+import { formatMMSS } from '../lib/format'
+import { playBeep, unlockAudio } from '../lib/audio'
 
 export default function RestCard({ entry, onStart, onFinish, onCancelTimer, onEdit, onDelete }) {
   const [now, setNow] = useState(Date.now())
@@ -78,7 +56,14 @@ export default function RestCard({ entry, onStart, onFinish, onCancelTimer, onEd
         ) : (
           <>
             {entry.status === 'planned' && !running && onStart && (
-              <button type="button" className="btn btn--primary" onClick={() => onStart(entry)}>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => {
+                  unlockAudio()
+                  onStart(entry)
+                }}
+              >
                 Start
               </button>
             )}

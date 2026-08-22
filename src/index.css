@@ -148,6 +148,46 @@ body {
   margin-bottom: 8px;
 }
 
+/* Autocomplete */
+.autocomplete {
+  position: relative;
+}
+
+.autocomplete__list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  max-height: 240px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.autocomplete__option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text);
+  padding: 12px 10px;
+  font-size: 1rem;
+  min-height: 44px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.autocomplete__option:active {
+  background: var(--surface);
+}
+
 /* Forms */
 .field {
   display: block;

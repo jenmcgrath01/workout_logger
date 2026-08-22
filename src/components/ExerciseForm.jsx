@@ -52,7 +52,7 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
     <form className="exercise-form" onSubmit={handleSubmit}>
       <label className="field">
         <span className="field__label">Exercise</span>
-        <ExerciseAutocomplete value={exerciseName} onChange={setExerciseName} catalog={catalog} listId="exercise-catalog" />
+        <ExerciseAutocomplete value={exerciseName} onChange={setExerciseName} catalog={catalog} />
       </label>
 
       {mode !== 'plan' && (

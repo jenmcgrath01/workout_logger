@@ -71,7 +71,7 @@ export default function HomeView({
 
       <div className="home-view__actions">
         <button type="button" className="btn btn--primary btn--full" onClick={onStartPlan}>
-          + Plan a session
+          {dayEntries.length > 0 ? 'Edit workout' : '+ Plan a workout'}
         </button>
         <button type="button" className="btn btn--secondary btn--full" onClick={onLogFly}>
           + Log on the fly

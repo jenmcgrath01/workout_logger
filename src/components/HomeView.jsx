@@ -1,5 +1,6 @@
 import EntryCard from './EntryCard'
 import RestCard from './RestCard'
+import CardioCard from './CardioCard'
 import DayTheme from './DayTheme'
 import { addDays } from '../lib/storage'
 
@@ -92,6 +93,8 @@ export default function HomeView({
                 onEdit={onEdit}
                 onDelete={onDelete}
               />
+            ) : entry.type === 'cardio' ? (
+              <CardioCard key={entry.id} entry={entry} onLog={onOpenLog} onEdit={onEdit} onDelete={onDelete} />
             ) : (
               <EntryCard key={entry.id} entry={entry} onLog={onOpenLog} onEdit={onEdit} onDelete={onDelete} />
             )
@@ -105,6 +108,8 @@ export default function HomeView({
           {completed.map((entry) =>
             entry.type === 'rest' ? (
               <RestCard key={entry.id} entry={entry} onEdit={onEdit} onDelete={onDelete} />
+            ) : entry.type === 'cardio' ? (
+              <CardioCard key={entry.id} entry={entry} onEdit={onEdit} onDelete={onDelete} />
             ) : (
               <EntryCard key={entry.id} entry={entry} onEdit={onEdit} onDelete={onDelete} />
             )

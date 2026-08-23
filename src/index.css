@@ -246,6 +246,48 @@ body {
   margin-bottom: 6px;
 }
 
+.cardio-form__row {
+  display: flex;
+  gap: 12px;
+}
+
+.cardio-form__row .field {
+  flex: 1;
+}
+
+.cardio-form__target {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  margin: -6px 0 14px;
+}
+
+/* Segmented control (log on the fly: Exercise / Cardio) */
+.segmented {
+  display: flex;
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 3px;
+  margin-bottom: 16px;
+}
+
+.segmented__btn {
+  flex: 1;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 10px 0;
+  min-height: 40px;
+  touch-action: manipulation;
+}
+
+.segmented__btn.is-active {
+  background: var(--accent);
+  color: white;
+}
+
 .field--checkbox {
   display: flex;
   align-items: center;
@@ -373,6 +415,12 @@ textarea.input {
   padding: 0;
   color: var(--text-dim);
   font-size: 0.95rem;
+}
+
+.cardio-card__stats {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  margin: 0 0 8px;
 }
 
 .entry-card__sets li {

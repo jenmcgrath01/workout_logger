@@ -7,16 +7,19 @@ import PlanView from './components/PlanView'
 import LogExerciseView from './components/LogExerciseView'
 import ExerciseForm from './components/ExerciseForm'
 import RestForm from './components/RestForm'
+import CardioForm from './components/CardioForm'
 
 function App() {
   const [entries, setEntries] = useState(() => loadEntries())
   const [screen, setScreen] = useState('home')
   const [activeEntryId, setActiveEntryId] = useState(null)
   const [editReturnScreen, setEditReturnScreen] = useState('home')
+  const [flyType, setFlyType] = useState('exercise')
 
   const today = useMemo(() => todayISO(), [])
   const [selectedDate, setSelectedDate] = useState(today)
   const catalog = useMemo(() => getExerciseCatalog(entries), [entries])
+  const cardioCatalog = useMemo(() => getExerciseCatalog(entries, 'cardio'), [entries])
   const [themes, setThemes] = useState(() => loadThemes())
   const themeCatalog = useMemo(() => getThemeCatalog(themes), [themes])
   const activeEntry = entries.find((e) => e.id === activeEntryId) ?? null
@@ -28,6 +31,10 @@ function App() {
 
   function handleAddRest(entryData) {
     handleAdd({ ...entryData, type: 'rest', status: 'planned', actualSeconds: null, startedAt: null })
+  }
+
+  function handleAddCardio(entryData) {
+    handleAdd({ ...entryData, type: 'cardio' })
   }
 
   function handlePersist(id, updates) {
@@ -92,6 +99,8 @@ function App() {
         catalog={catalog}
         onAddExercise={handleAdd}
         onAddRest={handleAddRest}
+        onAddCardio={handleAddCardio}
+        cardioCatalog={cardioCatalog}
         onSwap={handleSwap}
         themes={themes}
         themeCatalog={themeCatalog}
@@ -107,13 +116,61 @@ function App() {
         <button type="button" className="btn btn--link" onClick={goHome}>
           ← Back
         </button>
-        <h1 className="page-title">Log exercise</h1>
-        <ExerciseForm
+        <h1 className="page-title">Log on the fly</h1>
+        <div className="segmented">
+          <button
+            type="button"
+            className={`segmented__btn ${flyType === 'exercise' ? 'is-active' : ''}`}
+            onClick={() => setFlyType('exercise')}
+          >
+            Exercise
+          </button>
+          <button
+            type="button"
+            className={`segmented__btn ${flyType === 'cardio' ? 'is-active' : ''}`}
+            onClick={() => setFlyType('cardio')}
+          >
+            Cardio
+          </button>
+        </div>
+        {flyType === 'cardio' ? (
+          <CardioForm
+            mode="log"
+            date={selectedDate}
+            catalog={cardioCatalog}
+            onSave={(entryData) => {
+              handleAddCardio(entryData)
+              goHome()
+            }}
+            onCancel={goHome}
+          />
+        ) : (
+          <ExerciseForm
+            mode="log"
+            date={selectedDate}
+            catalog={catalog}
+            onSave={(entryData) => {
+              handleAdd(entryData)
+              goHome()
+            }}
+            onCancel={goHome}
+          />
+        )}
+      </div>
+    )
+  } else if (screen === 'log' && activeEntry && activeEntry.type === 'cardio') {
+    content = (
+      <div className="log-fly-view">
+        <button type="button" className="btn btn--link" onClick={goHome}>
+          ← Back
+        </button>
+        <h1 className="page-title">Log cardio</h1>
+        <CardioForm
           mode="log"
-          date={selectedDate}
-          catalog={catalog}
+          entry={activeEntry}
+          catalog={cardioCatalog}
           onSave={(entryData) => {
-            handleAdd(entryData)
+            handlePersist(activeEntry.id, entryData)
             goHome()
           }}
           onCancel={goHome}
@@ -141,6 +198,25 @@ function App() {
         <h1 className="page-title">Edit rest</h1>
         <RestForm
           entry={activeEntry}
+          onSave={(entryData) => {
+            handlePersist(activeEntry.id, entryData)
+            setScreen(editReturnScreen)
+          }}
+          onCancel={() => setScreen(editReturnScreen)}
+        />
+      </div>
+    )
+  } else if (screen === 'edit' && activeEntry && activeEntry.type === 'cardio') {
+    content = (
+      <div className="edit-view">
+        <button type="button" className="btn btn--link" onClick={() => setScreen(editReturnScreen)}>
+          ← Back
+        </button>
+        <h1 className="page-title">Edit cardio</h1>
+        <CardioForm
+          mode="edit"
+          entry={activeEntry}
+          catalog={cardioCatalog}
           onSave={(entryData) => {
             handlePersist(activeEntry.id, entryData)
             setScreen(editReturnScreen)
@@ -177,7 +253,10 @@ function App() {
         selectedDate={selectedDate}
         onDateChange={setSelectedDate}
         onStartPlan={() => setScreen('plan')}
-        onLogFly={() => setScreen('log-fly')}
+        onLogFly={() => {
+          setFlyType('exercise')
+          setScreen('log-fly')
+        }}
         onOpenLog={openLog}
         onEdit={(entry) => openEdit(entry, 'home')}
         onDelete={handleDelete}

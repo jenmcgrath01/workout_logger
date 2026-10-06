@@ -5,11 +5,14 @@ export default function SetRow({
   showActualInputs,
   showWeight = true,
   timed = false,
+  timeUnit = 'seconds',
   onChange,
   onRemove,
 }) {
   const countField = timed ? 'Seconds' : 'Reps'
-  const countPlaceholder = timed ? 'secs' : 'reps'
+  const countPlaceholder = timed ? (timeUnit === 'minutes' ? 'mins' : 'secs') : 'reps'
+  const unitLabel = timeUnit === 'minutes' ? 'min' : 'sec'
+  const timeMultiplier = timeUnit === 'minutes' ? 60 : 1
   const hasTarget = showWeight
     ? set.targetWeight != null || set[`target${countField}`] != null
     : set[`target${countField}`] != null
@@ -38,10 +41,10 @@ export default function SetRow({
             type="number"
             inputMode="numeric"
             placeholder={countPlaceholder}
-            value={set[`target${countField}`] ?? ''}
-            onChange={(e) => onChange({ [`target${countField}`]: e.target.value === '' ? null : Number(e.target.value) })}
+            value={set[`target${countField}`] != null ? set[`target${countField}`] / timeMultiplier : ''}
+            onChange={(e) => onChange({ [`target${countField}`]: e.target.value === '' ? null : Number(e.target.value) * timeMultiplier })}
           />
-          {timed && <span className="set-row__unit">sec</span>}
+          {timed && <span className="set-row__unit">{unitLabel}</span>}
         </div>
       )}
 
@@ -72,10 +75,10 @@ export default function SetRow({
             type="number"
             inputMode="numeric"
             placeholder={countPlaceholder}
-            value={set[`actual${countField}`] ?? ''}
-            onChange={(e) => onChange({ [`actual${countField}`]: e.target.value === '' ? null : Number(e.target.value) })}
+            value={set[`actual${countField}`] != null ? set[`actual${countField}`] / timeMultiplier : ''}
+            onChange={(e) => onChange({ [`actual${countField}`]: e.target.value === '' ? null : Number(e.target.value) * timeMultiplier })}
           />
-          {timed && <span className="set-row__unit">sec</span>}
+          {timed && <span className="set-row__unit">{unitLabel}</span>}
         </div>
       )}
 

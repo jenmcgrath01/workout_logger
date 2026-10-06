@@ -4,7 +4,15 @@ import ReorderControls from './ReorderControls'
 function formatSet(set, entry, prefix) {
   if (entry.timed) {
     const secs = set[`${prefix}Seconds`]
-    const hold = secs == null ? '–' : formatMMSS(secs)
+    const timeUnit = entry.timeUnit ?? 'seconds'
+    let hold
+    if (secs == null) {
+      hold = '–'
+    } else if (timeUnit === 'minutes') {
+      hold = `${secs / 60} min`
+    } else {
+      hold = formatMMSS(secs)
+    }
     if (entry.bodyweight) return hold
     const weight = set[`${prefix}Weight`]
     return weight == null ? hold : `${weight} lbs × ${hold}`

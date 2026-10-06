@@ -25,6 +25,8 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
   const [notes, setNotes] = useState(entry?.notes ?? '')
   const [bodyweight, setBodyweight] = useState(entry?.bodyweight ?? false)
   const [timed, setTimed] = useState(entry?.timed ?? false)
+  const [timeUnit, setTimeUnit] = useState(entry?.timeUnit ?? 'seconds')
+  const [enableBeeps, setEnableBeeps] = useState(entry?.enableBeeps ?? true)
   const [sets, setSets] = useState(entry?.sets?.length ? entry.sets : [emptySet()])
 
   function updateSet(i, patch) {
@@ -76,6 +78,8 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
       notes,
       bodyweight,
       timed,
+      timeUnit,
+      enableBeeps,
       sets: cleanedSets,
       status: mode === 'log' ? 'completed' : entry?.status ?? 'planned',
     })
@@ -104,6 +108,23 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
         <span>Timed hold (plank, hang…)</span>
       </label>
 
+      {timed && (
+        <>
+          <label className="field">
+            <span className="field__label">Time unit</span>
+            <select className="input" value={timeUnit} onChange={(e) => setTimeUnit(e.target.value)}>
+              <option value="seconds">Seconds</option>
+              <option value="minutes">Minutes</option>
+            </select>
+          </label>
+
+          <label className="field field--checkbox">
+            <input type="checkbox" checked={enableBeeps} onChange={(e) => setEnableBeeps(e.target.checked)} />
+            <span>Audio countdown beeps</span>
+          </label>
+        </>
+      )}
+
       {mode !== 'plan' && (
         <label className="field">
           <span className="field__label">Date</span>
@@ -112,7 +133,7 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
       )}
 
       <div className="field">
-        <span className="field__label">{timed ? 'Sets — hold time in seconds' : 'Sets'}</span>
+        <span className="field__label">{timed ? `Sets — hold time in ${timeUnit}` : 'Sets'}</span>
         <div className="set-list">
           {sets.map((s, i) => (
             <SetRow
@@ -123,6 +144,7 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
               showActualInputs={usesActualInputs}
               showWeight={!bodyweight}
               timed={timed}
+              timeUnit={timeUnit}
               onChange={(patch) => updateSet(i, patch)}
               onRemove={sets.length > 1 ? () => removeSet(i) : undefined}
             />

@@ -4,8 +4,11 @@ import { scheduleHoldBeeps, unlockAudio } from '../lib/audio'
 
 const LEAD_IN = 5
 
-export default function TimedSetRow({ index, set, onChange }) {
+export default function TimedSetRow({ index, set, timeUnit = 'seconds', enableBeeps = true, onChange }) {
   const target = set.targetSeconds ?? 0
+  const unitLabel = timeUnit === 'minutes' ? 'min' : 'sec'
+  const timeMultiplier = timeUnit === 'minutes' ? 60 : 1
+  const beepInterval = timeUnit === 'minutes' ? 60 : 10
   const [startedAt, setStartedAt] = useState(null)
   const [now, setNow] = useState(Date.now())
   const cancelBeepsRef = useRef(null)
@@ -40,7 +43,9 @@ export default function TimedSetRow({ index, set, onChange }) {
     unlockAudio()
     recordedRef.current = false
     cancelBeepsRef.current?.()
-    cancelBeepsRef.current = scheduleHoldBeeps({ leadInSeconds: LEAD_IN, holdSeconds: target })
+    if (enableBeeps) {
+      cancelBeepsRef.current = scheduleHoldBeeps({ leadInSeconds: LEAD_IN, holdSeconds: target, intervalSeconds: beepInterval })
+    }
     setNow(Date.now())
     setStartedAt(Date.now())
   }
@@ -56,18 +61,20 @@ export default function TimedSetRow({ index, set, onChange }) {
     <div className={`timed-set ${running ? 'is-running' : ''}`}>
       <div className="timed-set__top">
         <span className="set-row__num">{index + 1}</span>
-        <span className="timed-set__target">target {formatMMSS(target)}</span>
+        <span className="timed-set__target">
+          target {timeUnit === 'minutes' ? `${target / 60} min` : formatMMSS(target)}
+        </span>
 
         <label className="timed-set__actual">
           <input
             className="input input--num"
             type="number"
             inputMode="numeric"
-            placeholder="secs"
-            value={set.actualSeconds ?? ''}
-            onChange={(e) => onChange({ actualSeconds: e.target.value === '' ? null : Number(e.target.value) })}
+            placeholder={timeUnit === 'minutes' ? 'mins' : 'secs'}
+            value={set.actualSeconds != null ? set.actualSeconds / timeMultiplier : ''}
+            onChange={(e) => onChange({ actualSeconds: e.target.value === '' ? null : Number(e.target.value) * timeMultiplier })}
           />
-          <span className="set-row__unit">sec</span>
+          <span className="set-row__unit">{unitLabel}</span>
         </label>
       </div>
 

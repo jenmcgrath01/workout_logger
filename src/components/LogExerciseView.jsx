@@ -35,7 +35,14 @@ export default function LogExerciseView({ entry, onPersist, onComplete, onBack }
       <div className="set-list">
         {sets.map((s, i) =>
           entry.timed ? (
-            <TimedSetRow key={i} index={i} set={s} onChange={(patch) => updateSet(i, patch)} />
+            <TimedSetRow
+              key={i}
+              index={i}
+              set={s}
+              timeUnit={entry.timeUnit ?? 'seconds'}
+              enableBeeps={entry.enableBeeps ?? true}
+              onChange={(patch) => updateSet(i, patch)}
+            />
           ) : (
             <SetRow
               key={i}

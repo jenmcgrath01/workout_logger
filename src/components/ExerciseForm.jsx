@@ -45,6 +45,8 @@ export default function ExerciseForm({ mode, date, entry, entries = [], catalog,
     const draft = draftFromName(name, entries)
     setBodyweight(draft.bodyweight)
     setTimed(draft.timed)
+    setTimeUnit(draft.timeUnit)
+    setEnableBeeps(draft.enableBeeps)
     setSets(mode === 'log' ? draft.sets.map(asActuals) : draft.sets)
     setFilledFrom(draft.fromDate)
   }

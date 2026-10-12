@@ -18,6 +18,9 @@ export function strengthFrom(e, toDate) {
     exerciseName: e.exerciseName,
     bodyweight: !!e.bodyweight,
     timed: !!e.timed,
+    // Same defaults ExerciseForm applies to entries saved before these existed.
+    timeUnit: e.timeUnit ?? 'seconds',
+    enableBeeps: e.enableBeeps ?? true,
     notes: '',
     sets: (e.sets ?? []).map((s) => ({
       targetWeight: carryForward(s.actualWeight, s.targetWeight),

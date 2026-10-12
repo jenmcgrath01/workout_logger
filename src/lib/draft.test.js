@@ -55,6 +55,16 @@ describe('draftFromName', () => {
     expect(d.sets[0].targetSeconds).toBe(40)
   })
 
+  it('remembers a hold\'s time unit and beep setting', () => {
+    const hang = bench({ exerciseName: 'Dead hang', bodyweight: true, timed: true, timeUnit: 'minutes', enableBeeps: false,
+      sets: [set({ actualSeconds: 120 })] })
+    expect(draftFromName('Dead hang', [hang])).toMatchObject({ timeUnit: 'minutes', enableBeeps: false })
+  })
+
+  it('defaults an unknown exercise to seconds with beeps on', () => {
+    expect(draftFromName('Anything', [])).toMatchObject({ timeUnit: 'seconds', enableBeeps: true })
+  })
+
   it('falls back to three blank sets for an unknown exercise', () => {
     const d = draftFromName('  Dead hang ', [])
     expect(d.exerciseName).toBe('Dead hang')

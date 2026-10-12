@@ -38,6 +38,19 @@ describe('copyDay', () => {
     expect(copy.sets[0].targetSeconds).toBe(45)
   })
 
+  it('keeps a hold\'s time unit and beep setting', () => {
+    const hang = { ...completedBench, exerciseName: 'Dead hang', bodyweight: true, timed: true,
+      timeUnit: 'minutes', enableBeeps: false, sets: [set({ targetSeconds: 120, actualSeconds: 180 })] }
+    const [copy] = copyDay([hang], '2026-10-06', '2026-10-13')
+    expect(copy).toMatchObject({ timeUnit: 'minutes', enableBeeps: false })
+    expect(copy.sets[0].targetSeconds).toBe(180)
+  })
+
+  it('defaults older entries to seconds with beeps on', () => {
+    const [copy] = copyDay([completedBench], '2026-10-06', '2026-10-13')
+    expect(copy).toMatchObject({ timeUnit: 'seconds', enableBeeps: true })
+  })
+
   it('resets a rest that was started or finished', () => {
     const rest = { id: 'r', date: '2026-10-06', type: 'rest', status: 'completed', targetSeconds: 90, actualSeconds: 120, startedAt: 123 }
     const [copy] = copyDay([rest], '2026-10-06', '2026-10-13')

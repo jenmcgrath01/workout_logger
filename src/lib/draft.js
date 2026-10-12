@@ -40,6 +40,8 @@ export function draftFromName(name, entries, defaults = {}) {
       exerciseName: last.exerciseName,
       bodyweight: d.bodyweight,
       timed: d.timed,
+      timeUnit: d.timeUnit,
+      enableBeeps: d.enableBeeps,
       sets: d.sets,
       fromDate: last.date,
     }
@@ -53,6 +55,8 @@ export function draftFromName(name, entries, defaults = {}) {
     exerciseName: (name ?? '').trim(),
     bodyweight: !!defaults.bodyweight,
     timed,
+    timeUnit: 'seconds',
+    enableBeeps: true,
     sets,
     fromDate: null,
   }

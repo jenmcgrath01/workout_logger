@@ -31,6 +31,15 @@ export function addEntry(entry) {
   return newEntry
 }
 
+// One read and one write for the whole batch, appended in the order given
+// (array order is display order).
+export function addEntries(list) {
+  const entries = loadEntries()
+  const created = list.map((entry) => ({ id: uuid(), type: 'strength', notes: '', ...entry }))
+  saveEntries([...entries, ...created])
+  return created
+}
+
 export function updateEntry(id, updates) {
   const entries = loadEntries()
   const next = entries.map((e) => (e.id === id ? { ...e, ...updates } : e))

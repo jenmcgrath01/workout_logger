@@ -1,21 +1,27 @@
 import { useState } from 'react'
 import Autocomplete from './Autocomplete'
 import SetRow from './SetRow'
+import { DEFAULT_HOLD_SECONDS, draftFromName, emptySet, lastTimeFor } from '../lib/draft'
 
-const DEFAULT_HOLD_SECONDS = 30
+function formatDate(dateISO) {
+  const [y, m, d] = dateISO.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
 
-function emptySet() {
+// Last session's targets, moved over to the actual columns for logging.
+function asActuals(set) {
   return {
+    ...set,
+    actualWeight: set.targetWeight,
+    actualReps: set.targetReps,
+    actualSeconds: set.targetSeconds,
     targetWeight: null,
     targetReps: null,
     targetSeconds: null,
-    actualWeight: null,
-    actualReps: null,
-    actualSeconds: null,
   }
 }
 
-export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCancel }) {
+export default function ExerciseForm({ mode, date, entry, entries = [], catalog, onSave, onCancel }) {
   const editingPlanned = mode === 'edit' && entry?.status === 'planned'
   const usesTargetInputs = mode === 'plan' || editingPlanned
   const usesActualInputs = mode === 'log' || (mode === 'edit' && !editingPlanned)
@@ -28,12 +34,28 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
   const [timeUnit, setTimeUnit] = useState(entry?.timeUnit ?? 'seconds')
   const [enableBeeps, setEnableBeeps] = useState(entry?.enableBeeps ?? true)
   const [sets, setSets] = useState(entry?.sets?.length ? entry.sets : [emptySet()])
+  // Last-time prefill only ever fills an untouched form, so it can't clobber
+  // anything the user has typed.
+  const [pristine, setPristine] = useState(true)
+  const [filledFrom, setFilledFrom] = useState(null)
+
+  function handleNameChange(name) {
+    setExerciseName(name)
+    if (mode === 'edit' || !pristine || !lastTimeFor(name, entries)) return
+    const draft = draftFromName(name, entries)
+    setBodyweight(draft.bodyweight)
+    setTimed(draft.timed)
+    setSets(mode === 'log' ? draft.sets.map(asActuals) : draft.sets)
+    setFilledFrom(draft.fromDate)
+  }
 
   function updateSet(i, patch) {
+    setPristine(false)
     setSets((prev) => prev.map((s, idx) => (idx === i ? { ...s, ...patch } : s)))
   }
 
   function toggleBodyweight(checked) {
+    setPristine(false)
     setBodyweight(checked)
     if (checked) {
       setSets((prev) => prev.map((s) => ({ ...s, targetWeight: null, actualWeight: null })))
@@ -41,6 +63,7 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
   }
 
   function toggleTimed(checked) {
+    setPristine(false)
     setTimed(checked)
     if (checked) {
       setSets((prev) => prev.map((s) => ({ ...s, targetSeconds: s.targetSeconds ?? DEFAULT_HOLD_SECONDS })))
@@ -48,6 +71,7 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
   }
 
   function addSet() {
+    setPristine(false)
     setSets((prev) => {
       const base = prev.length ? { ...prev[prev.length - 1] } : emptySet()
       if (timed) base.targetSeconds = base.targetSeconds ?? DEFAULT_HOLD_SECONDS
@@ -56,6 +80,7 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
   }
 
   function removeSet(i) {
+    setPristine(false)
     setSets((prev) => (prev.length > 1 ? prev.filter((_, idx) => idx !== i) : prev))
   }
 
@@ -91,12 +116,13 @@ export default function ExerciseForm({ mode, date, entry, catalog, onSave, onCan
         <span className="field__label">Exercise</span>
         <Autocomplete
           value={exerciseName}
-          onChange={setExerciseName}
+          onChange={handleNameChange}
           catalog={catalog}
           placeholder="Exercise name"
           required
         />
       </label>
+      {filledFrom && <p className="exercise-form__hint">Filled in from {formatDate(filledFrom)} — change anything.</p>}
 
       <label className="field field--checkbox">
         <input type="checkbox" checked={bodyweight} onChange={(e) => toggleBodyweight(e.target.checked)} />

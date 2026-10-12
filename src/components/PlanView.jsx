@@ -6,6 +6,7 @@ import EntryCard from './EntryCard'
 import RestCard from './RestCard'
 import CardioCard from './CardioCard'
 import DayTheme from './DayTheme'
+import CopyDay from './CopyDay'
 
 const CARD_BY_TYPE = { rest: RestCard, cardio: CardioCard }
 
@@ -17,6 +18,7 @@ export default function PlanView({
   onAddExercise,
   onAddRest,
   onAddCardio,
+  onAddMany,
   onEdit,
   onDelete,
   onSwap,
@@ -47,6 +49,12 @@ export default function PlanView({
     setAddingCardio(false)
   }
 
+  function handleCopy(drafts, fromDate) {
+    onAddMany(drafts)
+    // Bring the theme along when the target day doesn't have one yet.
+    if (!themes[sessionDate] && themes[fromDate]) onSaveTheme(sessionDate, themes[fromDate])
+  }
+
   return (
     <div className="plan-view">
       <button type="button" className="btn btn--link" onClick={onDone}>
@@ -75,7 +83,14 @@ export default function PlanView({
       })}
 
       {adding ? (
-        <ExerciseForm mode="plan" date={sessionDate} catalog={catalog} onSave={handleSave} onCancel={() => setAdding(false)} />
+        <ExerciseForm
+          mode="plan"
+          date={sessionDate}
+          entries={entries}
+          catalog={catalog}
+          onSave={handleSave}
+          onCancel={() => setAdding(false)}
+        />
       ) : addingRest ? (
         <RestForm onSave={handleSaveRest} onCancel={() => setAddingRest(false)} />
       ) : addingCardio ? (
@@ -97,6 +112,7 @@ export default function PlanView({
           <button type="button" className="btn btn--secondary btn--full" onClick={() => setAddingCardio(true)}>
             + Add cardio
           </button>
+          <CopyDay entries={entries} themes={themes} targetDate={sessionDate} onCopy={handleCopy} />
         </div>
       )}
 

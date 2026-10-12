@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { loadEntries, addEntry, updateEntry, deleteEntry, swapEntries, todayISO } from './lib/storage'
+import { loadEntries, addEntry, addEntries, updateEntry, deleteEntry, swapEntries, todayISO } from './lib/storage'
 import { getExerciseCatalog } from './lib/exercises'
 import { loadThemes, setDayTheme, getThemeCatalog } from './lib/themes'
 import HomeView from './components/HomeView'
@@ -31,6 +31,11 @@ function App() {
 
   function handleAddRest(entryData) {
     handleAdd({ ...entryData, type: 'rest', status: 'planned', actualSeconds: null, startedAt: null })
+  }
+
+  function handleAddMany(drafts) {
+    addEntries(drafts)
+    setEntries(loadEntries())
   }
 
   function handleAddCardio(entryData) {
@@ -100,6 +105,7 @@ function App() {
         onAddExercise={handleAdd}
         onAddRest={handleAddRest}
         onAddCardio={handleAddCardio}
+        onAddMany={handleAddMany}
         cardioCatalog={cardioCatalog}
         onSwap={handleSwap}
         themes={themes}
@@ -148,6 +154,7 @@ function App() {
           <ExerciseForm
             mode="log"
             date={selectedDate}
+            entries={entries}
             catalog={catalog}
             onSave={(entryData) => {
               handleAdd(entryData)

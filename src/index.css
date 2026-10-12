@@ -261,6 +261,75 @@ body {
   margin: -6px 0 14px;
 }
 
+/* Copy day */
+.copy-day {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.copy-day__title {
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+.copy-day__option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  text-align: left;
+  touch-action: manipulation;
+}
+
+.copy-day__option.is-selected {
+  border-color: var(--accent);
+}
+
+.copy-day__option:disabled {
+  opacity: 0.45;
+}
+
+.copy-day__meta {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  font-weight: 400;
+  margin: 0;
+}
+
+.copy-day__preview {
+  margin-bottom: 4px;
+}
+
+.copy-day__preview ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.copy-day__empty {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.exercise-form__hint {
+  color: var(--accent);
+  font-size: 0.8rem;
+  margin: -8px 0 12px;
+}
+
 /* Segmented control (log on the fly: Exercise / Cardio) */
 .segmented {
   display: flex;

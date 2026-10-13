@@ -1,30 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
 import { formatMMSS } from '../lib/format'
-import { playBeep, unlockAudio } from '../lib/audio'
+import { unlockAudio } from '../lib/audio'
+import { useRestTimer } from '../lib/useRestTimer'
 import ReorderControls from './ReorderControls'
 
 export default function RestCard({ entry, onStart, onFinish, onCancelTimer, onEdit, onDelete, onMoveUp, onMoveDown }) {
-  const [now, setNow] = useState(Date.now())
-  const running = entry.status === 'planned' && entry.startedAt != null
-  const beepedRef = useRef(false)
-
-  useEffect(() => {
-    if (!running) return
-    const id = setInterval(() => setNow(Date.now()), 250)
-    return () => clearInterval(id)
-  }, [running])
-
-  const elapsed = running ? (now - entry.startedAt) / 1000 : 0
-  const remaining = entry.targetSeconds - elapsed
-  const overtime = remaining < 0
-
-  useEffect(() => {
-    if (running && overtime && !beepedRef.current) {
-      beepedRef.current = true
-      playBeep()
-    }
-    if (!running) beepedRef.current = false
-  }, [running, overtime])
+  const { running, elapsed, remaining, overtime } = useRestTimer(entry)
 
   return (
     <div className="entry-card rest-card">

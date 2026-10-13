@@ -411,6 +411,121 @@ body {
   background: linear-gradient(to top, var(--bg) 70%, transparent);
 }
 
+/* Guided workout */
+.run-view__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.run-view__step {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.run-view__bar {
+  height: 4px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 6px 0 14px;
+}
+
+.run-view__bar-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+
+.run-view__upnext {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 8px 0 0;
+}
+
+.run-view__summary {
+  font-size: 1.1rem;
+  margin: 0 0 16px;
+}
+
+.run-view__skip {
+  margin-top: 12px;
+}
+
+.run-view__remove {
+  display: block;
+  margin: 8px auto 0;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.run-rest {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.run-rest__target {
+  color: var(--text-dim);
+  margin: -8px 0 0;
+}
+
+.run-rest__clock {
+  font-size: 5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  line-height: 1.1;
+  margin: 10px 0 18px;
+}
+
+.run-rest__clock--over {
+  color: var(--danger);
+}
+
+.run-complete__stats {
+  color: var(--text-dim);
+  margin: -8px 0 16px;
+}
+
+.run-complete__list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+}
+
+.run-complete__list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.run-complete__name {
+  font-weight: 600;
+}
+
+.run-complete__detail {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.run-complete__list--skipped li {
+  opacity: 0.7;
+}
+
+.run-complete__note {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  margin: 0 0 16px;
+}
+
 /* Quick add */
 .quick-add__hint {
   color: var(--text-dim);

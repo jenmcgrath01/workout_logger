@@ -2,7 +2,10 @@ import { useState } from 'react'
 import SetRow from './SetRow'
 import TimedSetRow from './TimedSetRow'
 
-export default function LogExerciseView({ entry, onPersist, onComplete, onBack }) {
+// `hideBack`, `done` and `doneAction` let the workout runner embed this view:
+// it supplies its own header, and swaps "Mark complete" for its "Next" button
+// once the exercise is logged.
+export default function LogExerciseView({ entry, onPersist, onComplete, onBack, hideBack = false, done = false, doneAction = null }) {
   const [sets, setSets] = useState(
     entry.sets.map((s) => ({
       ...s,
@@ -26,9 +29,11 @@ export default function LogExerciseView({ entry, onPersist, onComplete, onBack }
 
   return (
     <div className="log-view">
-      <button type="button" className="btn btn--link" onClick={onBack}>
-        ← Back
-      </button>
+      {!hideBack && (
+        <button type="button" className="btn btn--link" onClick={onBack}>
+          ← Back
+        </button>
+      )}
 
       <h2 className="log-view__title">{entry.exerciseName}</h2>
 
@@ -62,9 +67,13 @@ export default function LogExerciseView({ entry, onPersist, onComplete, onBack }
         <textarea className="input" rows={2} value={notes} onChange={(e) => updateNotes(e.target.value)} placeholder="Optional" />
       </label>
 
-      <button type="button" className="btn btn--primary btn--full" onClick={() => onComplete({ sets, notes })}>
-        Mark complete
-      </button>
+      {done ? (
+        doneAction
+      ) : (
+        <button type="button" className="btn btn--primary btn--full" onClick={() => onComplete({ sets, notes })}>
+          Mark complete
+        </button>
+      )}
     </div>
   )
 }

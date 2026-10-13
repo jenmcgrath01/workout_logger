@@ -5,7 +5,7 @@ import { formatMinutes } from '../lib/format'
 // Cardio has no sets, so target/actual apply to the whole entry rather than
 // per-row like strength — editingPlanned/mode make these mutually exclusive,
 // same split ExerciseForm uses.
-export default function CardioForm({ mode, date, entry, catalog, onSave, onCancel }) {
+export default function CardioForm({ mode, date, entry, catalog, cancelLabel = 'Cancel', onSave, onCancel }) {
   const editingPlanned = mode === 'edit' && entry?.status === 'planned'
   const usesTargetInputs = mode === 'plan' || editingPlanned
   const usesActualInputs = mode === 'log' || (mode === 'edit' && !editingPlanned)
@@ -95,7 +95,7 @@ export default function CardioForm({ mode, date, entry, catalog, onSave, onCance
 
       <div className="form-actions">
         <button type="button" className="btn btn--secondary btn--full" onClick={onCancel}>
-          Cancel
+          {cancelLabel}
         </button>
         <button type="submit" className="btn btn--primary btn--full">
           {mode === 'plan' ? 'Add to plan' : mode === 'log' ? 'Log cardio' : 'Save'}

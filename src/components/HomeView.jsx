@@ -3,6 +3,7 @@ import RestCard from './RestCard'
 import CardioCard from './CardioCard'
 import DayTheme from './DayTheme'
 import { addDays } from '../lib/storage'
+import { runLabel } from '../lib/runner'
 
 function formatDateLabel(dateISO, today) {
   if (dateISO === today) return 'Today'
@@ -18,6 +19,7 @@ export default function HomeView({
   selectedDate,
   onDateChange,
   onStartPlan,
+  onStartRun,
   onLogFly,
   onOpenLog,
   onEdit,
@@ -32,6 +34,8 @@ export default function HomeView({
   const dayEntries = entries.filter((e) => e.date === selectedDate)
   const planned = dayEntries.filter((e) => e.status === 'planned')
   const completed = dayEntries.filter((e) => e.status === 'completed')
+  // "Start workout" / "Resume workout" — absent when nothing is left to do.
+  const startLabel = runLabel(dayEntries)
 
   return (
     <div className="home-view">
@@ -71,7 +75,12 @@ export default function HomeView({
       </div>
 
       <div className="home-view__actions">
-        <button type="button" className="btn btn--primary btn--full" onClick={onStartPlan}>
+        {startLabel && (
+          <button type="button" className="btn btn--primary btn--full" onClick={onStartRun}>
+            {startLabel}
+          </button>
+        )}
+        <button type="button" className={`btn ${startLabel ? 'btn--secondary' : 'btn--primary'} btn--full`} onClick={onStartPlan}>
           {dayEntries.length > 0 ? 'Edit workout' : '+ Plan a workout'}
         </button>
         <button type="button" className="btn btn--secondary btn--full" onClick={onLogFly}>

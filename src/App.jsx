@@ -4,12 +4,15 @@ import { getExerciseCatalog } from './lib/exercises'
 import { loadThemes, setDayTheme, getThemeCatalog } from './lib/themes'
 import { loadCustom, addCustom } from './lib/customExercises'
 import { loadEquipment, saveEquipment } from './lib/equipment'
+import { unlockAudio } from './lib/audio'
+import { firstUnfinished, needsRestStart, nextLiveIndex, stepIds } from './lib/runner'
 import HomeView from './components/HomeView'
 import PlanView from './components/PlanView'
 import LogExerciseView from './components/LogExerciseView'
 import ExerciseForm from './components/ExerciseForm'
 import RestForm from './components/RestForm'
 import CardioForm from './components/CardioForm'
+import RunView from './components/RunView'
 
 function App() {
   const [entries, setEntries] = useState(() => loadEntries())
@@ -17,6 +20,8 @@ function App() {
   const [activeEntryId, setActiveEntryId] = useState(null)
   const [editReturnScreen, setEditReturnScreen] = useState('home')
   const [flyType, setFlyType] = useState('exercise')
+  // The guided workout: { ids, index, skipped, startedAt }, or null when not running.
+  const [run, setRun] = useState(null)
 
   const today = useMemo(() => todayISO(), [])
   const [selectedDate, setSelectedDate] = useState(today)
@@ -105,7 +110,66 @@ function App() {
 
   function goHome() {
     setActiveEntryId(null)
+    setRun(null)
     setScreen('home')
+  }
+
+  // ---- Guided workout ("execute the workout") ----
+
+  // Start the timer of a rest that is about to be shown, if it hasn't started.
+  function startRestIfNeeded(list, id) {
+    const target = list.find((e) => e.id === id)
+    if (needsRestStart(target)) handlePersist(target.id, { startedAt: Date.now() })
+  }
+
+  function startRun() {
+    unlockAudio() // iOS only plays audio started from a tap
+    const ids = stepIds(entries, selectedDate)
+    const index = firstUnfinished(ids, entries)
+    if (index >= ids.length) return
+    startRestIfNeeded(entries, ids[index])
+    setRun({ ids, index, skipped: [], startedAt: Date.now() })
+    setScreen('run')
+  }
+
+  function advanceRun(list, skipId) {
+    const next = nextLiveIndex(run.ids, list, run.index)
+    startRestIfNeeded(list, run.ids[next])
+    setRun((r) => ({ ...r, index: next, skipped: skipId ? [...r.skipped, skipId] : r.skipped }))
+  }
+
+  // A rest right after the exercise you just finished starts counting now,
+  // even if you are still looking at that exercise.
+  function startRestAfterCurrent() {
+    const list = loadEntries()
+    startRestIfNeeded(list, run.ids[nextLiveIndex(run.ids, list, run.index)])
+  }
+
+  function handleRunCompleteStrength(entry, updates) {
+    handlePersist(entry.id, { ...updates, status: 'completed' })
+    startRestAfterCurrent()
+  }
+
+  function handleRunCompleteCardio(entry, data) {
+    handlePersist(entry.id, { ...data, status: 'completed' })
+    startRestAfterCurrent()
+  }
+
+  function handleRunFinishRest(entry, actualSeconds) {
+    handlePersist(entry.id, { status: 'completed', actualSeconds })
+    advanceRun(loadEntries())
+  }
+
+  function handleRunSkipRest(entry) {
+    handlePersist(entry.id, { startedAt: null })
+    advanceRun(loadEntries(), entry.id)
+  }
+
+  function handleRunRemove(entry) {
+    if (!window.confirm(`Remove ${entry.exerciseName} from the workout?`)) return
+    deleteEntry(entry.id)
+    setEntries(loadEntries())
+    advanceRun(loadEntries())
   }
 
   let content
@@ -131,6 +195,25 @@ function App() {
         onEdit={(entry) => openEdit(entry, 'plan')}
         onDelete={handleDelete}
         onDone={goHome}
+      />
+    )
+  } else if (screen === 'run' && run) {
+    content = (
+      <RunView
+        entries={entries}
+        run={run}
+        cardioCatalog={cardioCatalog}
+        onBack={goHome}
+        onPersist={handlePersist}
+        onCompleteStrength={handleRunCompleteStrength}
+        onCompleteCardio={handleRunCompleteCardio}
+        onFinishRest={handleRunFinishRest}
+        onSkipRest={handleRunSkipRest}
+        onStartRest={handleStartRest}
+        onNext={() => advanceRun(loadEntries())}
+        onSkip={(entry) => advanceRun(loadEntries(), entry.id)}
+        onRemove={handleRunRemove}
+        onFinish={goHome}
       />
     )
   } else if (screen === 'log-fly') {
@@ -283,6 +366,7 @@ function App() {
         selectedDate={selectedDate}
         onDateChange={setSelectedDate}
         onStartPlan={() => setScreen('plan')}
+        onStartRun={startRun}
         onLogFly={() => {
           setFlyType('exercise')
           setScreen('log-fly')

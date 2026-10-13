@@ -8,6 +8,7 @@ import CardioCard from './CardioCard'
 import DayTheme from './DayTheme'
 import CopyDay from './CopyDay'
 import ExercisePicker from './ExercisePicker'
+import QuickAdd from './QuickAdd'
 import { draftFromName } from '../lib/draft'
 import { defaultsFor } from '../lib/exerciseDb'
 
@@ -37,6 +38,7 @@ export default function PlanView({
   const [addingRest, setAddingRest] = useState(false)
   const [addingCardio, setAddingCardio] = useState(false)
   const [browsing, setBrowsing] = useState(false)
+  const [quick, setQuick] = useState(false)
 
   const plannedForSession = entries.filter((e) => e.date === sessionDate && e.status === 'planned')
 
@@ -119,6 +121,19 @@ export default function PlanView({
           onSave={handleSave}
           onCancel={() => setAdding(false)}
         />
+      ) : quick ? (
+        <QuickAdd
+          date={sessionDate}
+          entries={entries}
+          catalog={catalog}
+          custom={custom}
+          onAddCustom={onAddCustom}
+          onAdd={(drafts) => {
+            onAddMany(drafts)
+            setQuick(false)
+          }}
+          onClose={() => setQuick(false)}
+        />
       ) : browsing ? (
         <ExercisePicker
           theme={themes[sessionDate] ?? ''}
@@ -140,11 +155,14 @@ export default function PlanView({
         />
       ) : (
         <div className="plan-view__add-actions">
-          <button type="button" className="btn btn--primary btn--full" onClick={() => setAdding(true)}>
-            + Add exercise
+          <button type="button" className="btn btn--primary btn--full" onClick={() => setQuick(true)}>
+            Quick add — type or dictate
           </button>
           <button type="button" className="btn btn--secondary btn--full" onClick={() => setBrowsing(true)}>
             Browse exercises{themes[sessionDate] ? ` for ${themes[sessionDate]}` : ''}
+          </button>
+          <button type="button" className="btn btn--secondary btn--full" onClick={() => setAdding(true)}>
+            + Add exercise
           </button>
           <button type="button" className="btn btn--secondary btn--full" onClick={() => setAddingRest(true)}>
             + Add rest

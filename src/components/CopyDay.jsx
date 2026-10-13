@@ -43,7 +43,7 @@ export default function CopyDay({ entries, themes, targetDate, onCopy }) {
   if (!open) {
     return (
       <button type="button" className="btn btn--secondary btn--full" onClick={() => setOpen(true)}>
-        Copy from another day
+        Copy a day
       </button>
     )
   }

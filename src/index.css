@@ -411,6 +411,73 @@ body {
   background: linear-gradient(to top, var(--bg) 70%, transparent);
 }
 
+/* Quick add */
+.quick-add__hint {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  margin: 6px 0 10px;
+}
+
+.quick-add__box {
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.quick-add__warning {
+  color: #d9a441;
+  font-size: 0.85rem;
+  margin: 0 0 8px;
+}
+
+.quick-add__items {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.qa-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.qa-item--flag {
+  border-color: #d9a441;
+}
+
+.qa-item__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.qa-item__name {
+  font-weight: 700;
+}
+
+.qa-item__detail {
+  color: var(--text);
+  font-size: 0.95rem;
+  margin-top: 2px;
+}
+
+.qa-item__note {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.qa-item__warn {
+  color: #d9a441;
+  font-size: 0.85rem;
+  margin: 6px 0;
+}
+
+.qa-item__fix {
+  margin-top: 8px;
+}
+
 /* Copy day */
 .copy-day {
   background: var(--surface);
@@ -793,9 +860,15 @@ textarea.input {
 }
 
 .plan-view__add-actions {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+/* Quick add and Browse get a full row; the smaller actions share rows. */
+.plan-view__add-actions > :nth-child(-n + 2),
+.plan-view__add-actions > .copy-day {
+  grid-column: 1 / -1;
 }
 
 .plan-view__done {

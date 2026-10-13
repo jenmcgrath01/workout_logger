@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import Autocomplete from './Autocomplete'
+import CustomExercisePrompt from './CustomExercisePrompt'
 import SetRow from './SetRow'
+import { defaultsFor, isKnownName, suggest } from '../lib/exerciseDb'
 import { DEFAULT_HOLD_SECONDS, draftFromName, emptySet, lastTimeFor } from '../lib/draft'
 
 function formatDate(dateISO) {
@@ -21,7 +23,7 @@ function asActuals(set) {
   }
 }
 
-export default function ExerciseForm({ mode, date, entry, entries = [], catalog, onSave, onCancel }) {
+export default function ExerciseForm({ mode, date, entry, entries = [], catalog, custom = {}, onAddCustom, onSave, onCancel }) {
   const editingPlanned = mode === 'edit' && entry?.status === 'planned'
   const usesTargetInputs = mode === 'plan' || editingPlanned
   const usesActualInputs = mode === 'log' || (mode === 'edit' && !editingPlanned)
@@ -38,17 +40,40 @@ export default function ExerciseForm({ mode, date, entry, entries = [], catalog,
   // anything the user has typed.
   const [pristine, setPristine] = useState(true)
   const [filledFrom, setFilledFrom] = useState(null)
+  // True while the "this will be a custom exercise" confirmation is showing.
+  const [askCustom, setAskCustom] = useState(false)
+
+  // Names the app already recognises: standard database, your history, and
+  // exercises you've made custom.
+  const nameCtx = { history: catalog, custom: Object.keys(custom) }
 
   function handleNameChange(name) {
     setExerciseName(name)
-    if (mode === 'edit' || !pristine || !lastTimeFor(name, entries)) return
-    const draft = draftFromName(name, entries)
-    setBodyweight(draft.bodyweight)
-    setTimed(draft.timed)
-    setTimeUnit(draft.timeUnit)
-    setEnableBeeps(draft.enableBeeps)
-    setSets(mode === 'log' ? draft.sets.map(asActuals) : draft.sets)
-    setFilledFrom(draft.fromDate)
+    setAskCustom(false)
+    if (mode === 'edit' || !pristine) return
+
+    if (lastTimeFor(name, entries)) {
+      const draft = draftFromName(name, entries)
+      setBodyweight(draft.bodyweight)
+      setTimed(draft.timed)
+      setTimeUnit(draft.timeUnit)
+      setEnableBeeps(draft.enableBeeps)
+      setSets(mode === 'log' ? draft.sets.map(asActuals) : draft.sets)
+      setFilledFrom(draft.fromDate)
+      return
+    }
+
+    // Never logged: fall back to what's known about the name (a custom
+    // exercise's remembered settings, or the database's equipment).
+    const defaults = defaultsFor(name, custom)
+    if (defaults) {
+      setBodyweight(defaults.bodyweight)
+      setTimed(defaults.timed)
+      if (defaults.timed) {
+        setSets((prev) => prev.map((s) => ({ ...s, targetSeconds: s.targetSeconds ?? DEFAULT_HOLD_SECONDS })))
+      }
+      setFilledFrom(null)
+    }
   }
 
   function updateSet(i, patch) {
@@ -89,7 +114,22 @@ export default function ExerciseForm({ mode, date, entry, entries = [], catalog,
   function handleSubmit(e) {
     e.preventDefault()
     if (!exerciseName.trim()) return
+    // A name the app has never seen is a new custom exercise — say so and ask,
+    // rather than quietly saving it.
+    if (!isKnownName(exerciseName, nameCtx)) {
+      setAskCustom(true)
+      return
+    }
+    save()
+  }
 
+  function confirmCustom({ muscles }) {
+    onAddCustom?.(exerciseName.trim(), { muscles, timed, bodyweight })
+    setAskCustom(false)
+    save()
+  }
+
+  function save() {
     const cleanedSets = sets.map((s) => ({
       targetWeight: s.targetWeight ?? null,
       targetReps: s.targetReps ?? null,
@@ -119,7 +159,8 @@ export default function ExerciseForm({ mode, date, entry, entries = [], catalog,
         <Autocomplete
           value={exerciseName}
           onChange={handleNameChange}
-          catalog={catalog}
+          suggest={(q) => suggest(q, nameCtx)}
+          onCreate={() => setAskCustom(true)}
           placeholder="Exercise name"
           required
         />
@@ -188,14 +229,25 @@ export default function ExerciseForm({ mode, date, entry, entries = [], catalog,
         <textarea className="input" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional" />
       </label>
 
-      <div className="form-actions">
-        <button type="button" className="btn btn--secondary btn--full" onClick={onCancel}>
-          Cancel
-        </button>
-        <button type="submit" className="btn btn--primary btn--full">
-          {mode === 'plan' ? 'Add to plan' : mode === 'log' ? 'Log exercise' : 'Save'}
-        </button>
-      </div>
+      {askCustom ? (
+        <CustomExercisePrompt
+          name={exerciseName.trim()}
+          timed={timed}
+          bodyweight={bodyweight}
+          onConfirm={confirmCustom}
+          onCancel={() => setAskCustom(false)}
+          confirmLabel={mode === 'plan' ? 'Save as custom & add' : mode === 'log' ? 'Save as custom & log' : 'Save as custom'}
+        />
+      ) : (
+        <div className="form-actions">
+          <button type="button" className="btn btn--secondary btn--full" onClick={onCancel}>
+            Cancel
+          </button>
+          <button type="submit" className="btn btn--primary btn--full">
+            {mode === 'plan' ? 'Add to plan' : mode === 'log' ? 'Log exercise' : 'Save'}
+          </button>
+        </div>
+      )}
     </form>
   )
 }

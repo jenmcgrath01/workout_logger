@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { loadEntries, addEntry, addEntries, updateEntry, deleteEntry, swapEntries, todayISO } from './lib/storage'
 import { getExerciseCatalog } from './lib/exercises'
 import { loadThemes, setDayTheme, getThemeCatalog } from './lib/themes'
+import { loadCustom, addCustom } from './lib/customExercises'
 import HomeView from './components/HomeView'
 import PlanView from './components/PlanView'
 import LogExerciseView from './components/LogExerciseView'
@@ -21,6 +22,7 @@ function App() {
   const catalog = useMemo(() => getExerciseCatalog(entries), [entries])
   const cardioCatalog = useMemo(() => getExerciseCatalog(entries, 'cardio'), [entries])
   const [themes, setThemes] = useState(() => loadThemes())
+  const [custom, setCustom] = useState(() => loadCustom())
   const themeCatalog = useMemo(() => getThemeCatalog(themes), [themes])
   const activeEntry = entries.find((e) => e.id === activeEntryId) ?? null
 
@@ -56,6 +58,10 @@ function App() {
       setActiveEntryId(null)
       setScreen('home')
     }
+  }
+
+  function handleAddCustom(name, info) {
+    setCustom({ ...addCustom(name, info) })
   }
 
   function handleSaveTheme(date, theme) {
@@ -102,6 +108,8 @@ function App() {
         entries={entries}
         initialDate={selectedDate}
         catalog={catalog}
+        custom={custom}
+        onAddCustom={handleAddCustom}
         onAddExercise={handleAdd}
         onAddRest={handleAddRest}
         onAddCardio={handleAddCardio}
@@ -156,6 +164,8 @@ function App() {
             date={selectedDate}
             entries={entries}
             catalog={catalog}
+            custom={custom}
+            onAddCustom={handleAddCustom}
             onSave={(entryData) => {
               handleAdd(entryData)
               goHome()
@@ -244,6 +254,8 @@ function App() {
           entry={activeEntry}
           date={activeEntry.date}
           catalog={catalog}
+          custom={custom}
+          onAddCustom={handleAddCustom}
           onSave={(entryData) => {
             handlePersist(activeEntry.id, entryData)
             setScreen(editReturnScreen)

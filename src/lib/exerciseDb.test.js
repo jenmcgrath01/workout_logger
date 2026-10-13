@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ALIASES, DB, MUSCLES, byMuscles, dbEntry, isKnownName, matchName, suggest, tokenize } from './exerciseDb'
+import { ALIASES, DB, DUMBBELL_ALIASES, MUSCLES, byMuscles, dbEntry, isKnownName, matchName, suggest, tokenize } from './exerciseDb'
 import { musclesForTheme } from './themeMuscles'
 
 describe('data integrity', () => {
@@ -141,5 +141,112 @@ describe('musclesForTheme', () => {
 
   it('reports an unrecognised theme as unmatched', () => {
     expect(musclesForTheme('Banana day')).toMatchObject({ matched: false, muscles: [] })
+  })
+})
+
+describe('dumbbell shorthand', () => {
+  const name = (text, ctx) => matchName(text, ctx).best?.name
+
+  it('reads "db" and common misspellings as dumbbell', () => {
+    expect(tokenize('db curl')).toEqual(tokenize('dumbbell curl'))
+    expect(tokenize('dumbell curl')).toEqual(tokenize('dumbbell curl'))
+  })
+
+  it('resolves "db <lift>" to the dumbbell version, with no preference set', () => {
+    expect(name('db curl')).toBe('Dumbbell Bicep Curl')
+    expect(name('db bench')).toBe('Dumbbell Bench Press')
+    expect(name('db bench press')).toBe('Dumbbell Bench Press')
+    expect(name('dumbell bench')).toBe('Dumbbell Bench Press')
+    expect(name('db deadlift')).toBe('Stiff-Legged Dumbbell Deadlift')
+    expect(name('db hammer curl')).toBe('Hammer Curls')
+    expect(name('db row')).toBe('One-Arm Dumbbell Row')
+    expect(name('db squat')).toBe('Dumbbell Squat')
+  })
+
+  it('is confident about those, not a guess', () => {
+    for (const t of ['db curl', 'db bench', 'db deadlift', 'db hammer curl']) {
+      expect(matchName(t).confident, t).toBe(true)
+    }
+  })
+
+  it('"db" overrides a barbell preference', () => {
+    expect(name('db squat', { equipment: ['barbell'] })).toBe('Dumbbell Squat')
+  })
+
+  it('does not guess a barbell lift for an unknown dumbbell phrase', () => {
+    const m = matchName('db something odd')
+    expect(m.confident).toBe(false)
+    expect(m.candidates.every((c) => c.source !== 'db' || dbEntry(c.name).equipment === 'dumbbell')).toBe(true)
+  })
+})
+
+describe('equipment preference', () => {
+  const mine = { equipment: ['dumbbell', 'body only'] }
+  const name = (text, ctx) => matchName(text, ctx).best?.name
+
+  it('turns everyday names into the dumbbell version', () => {
+    expect(name('bench press', mine)).toBe('Dumbbell Bench Press')
+    expect(name('squat', mine)).toBe('Dumbbell Squat')
+    expect(name('row', mine)).toBe('One-Arm Dumbbell Row')
+    expect(name('overhead press', mine)).toBe('Dumbbell Shoulder Press')
+    expect(name('deadlift', mine)).toBe('Stiff-Legged Dumbbell Deadlift')
+  })
+
+  it('leaves bodyweight exercises alone', () => {
+    expect(name('pushups', mine)).toBe('Pushups')
+    expect(name('pull ups', mine)).toBe('Pullups')
+    expect(name('plank', mine)).toBe('Plank')
+  })
+
+  it('keeps the barbell version when you have a barbell', () => {
+    expect(name('bench press', { equipment: ['dumbbell', 'barbell'] })).toBe('Barbell Bench Press - Medium Grip')
+  })
+
+  it('changes nothing when no preference is given', () => {
+    expect(name('bench press')).toBe('Barbell Bench Press - Medium Grip')
+  })
+
+  it('still prefers a name you already use', () => {
+    expect(matchName('bench press', { ...mine, history: ['Bench Press'] }).best.name).toBe('Bench Press')
+  })
+
+  it('narrows browsing to your equipment, but keeps exercises with no listed equipment', () => {
+    const list = byMuscles(['chest'], { equipment: ['dumbbell', 'body only'] })
+    expect(list.length).toBeGreaterThan(5)
+    expect(list.every((e) => e.equipment == null || ['dumbbell', 'body only'].includes(e.equipment))).toBe(true)
+    expect(list.some((e) => e.equipment === 'barbell')).toBe(false)
+  })
+
+  it('does not filter when no equipment is chosen', () => {
+    expect(byMuscles(['chest'], { equipment: [] }).length).toBe(byMuscles(['chest']).length)
+  })
+})
+
+describe('suggest with shorthand', () => {
+  it('expands "db" so the dropdown finds dumbbell exercises', () => {
+    const s = suggest('db curl')
+    expect(s.length).toBeGreaterThan(0)
+    expect(s.every((x) => /dumbbell/i.test(x.name) && /curl/i.test(x.name))).toBe(true)
+  })
+
+  it('lists your equipment first among database results', () => {
+    const s = suggest('curl', { equipment: ['dumbbell'] }, 5)
+    expect(s.slice(0, 3).every((x) => dbEntry(x.name)?.equipment === 'dumbbell')).toBe(true)
+  })
+})
+
+describe('dumbbell alias integrity', () => {
+  it('every target exists and is a dumbbell exercise', () => {
+    for (const [alias, target] of Object.entries(DUMBBELL_ALIASES)) {
+      const e = dbEntry(target)
+      expect(e, `${alias} -> ${target}`).not.toBeNull()
+      expect(['dumbbell', 'kettlebells'], `${target} equipment`).toContain(e.equipment)
+    }
+  })
+
+  it('every key is already in normalised form', () => {
+    for (const alias of Object.keys(DUMBBELL_ALIASES)) {
+      expect(tokenize(alias).join(' '), alias).toBe(alias)
+    }
   })
 })

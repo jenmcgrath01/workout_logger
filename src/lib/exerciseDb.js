@@ -47,6 +47,49 @@ export const ALIASES = {
   'fly': 'Dumbbell Flyes',
 }
 
+// The same everyday names, resolved to the dumbbell version. Used for "db
+// curl" (always) and whenever your equipment is dumbbells without a barbell.
+// Goblet Squat is tagged kettlebells in the data but is a dumbbell staple.
+export const DUMBBELL_ALIASES = {
+  'bench press': 'Dumbbell Bench Press',
+  'bench': 'Dumbbell Bench Press',
+  'incline bench press': 'Incline Dumbbell Press',
+  'incline bench': 'Incline Dumbbell Press',
+  'incline press': 'Incline Dumbbell Press',
+  'decline bench press': 'Decline Dumbbell Bench Press',
+  'floor press': 'Dumbbell Floor Press',
+  'squat': 'Dumbbell Squat',
+  'goblet squat': 'Goblet Squat',
+  'deadlift': 'Stiff-Legged Dumbbell Deadlift',
+  'romanian deadlift': 'Stiff-Legged Dumbbell Deadlift',
+  'rdl': 'Stiff-Legged Dumbbell Deadlift',
+  'shoulder press': 'Dumbbell Shoulder Press',
+  'overhead press': 'Dumbbell Shoulder Press',
+  'military press': 'Dumbbell Shoulder Press',
+  'arnold press': 'Arnold Dumbbell Press',
+  'row': 'One-Arm Dumbbell Row',
+  'one arm row': 'One-Arm Dumbbell Row',
+  'bent over row': 'Bent Over Two-Dumbbell Row',
+  'two arm row': 'Bent Over Two-Dumbbell Row',
+  'curl': 'Dumbbell Bicep Curl',
+  'bicep curl': 'Dumbbell Bicep Curl',
+  'hammer curl': 'Hammer Curls',
+  'incline curl': 'Incline Dumbbell Curl',
+  'concentration curl': 'Concentration Curls',
+  'lunge': 'Dumbbell Lunges',
+  'rear lunge': 'Dumbbell Rear Lunge',
+  'reverse lunge': 'Dumbbell Rear Lunge',
+  'fly': 'Dumbbell Flyes',
+  'lateral raise': 'Side Lateral Raise',
+  'front raise': 'Front Dumbbell Raise',
+  'step up': 'Dumbbell Step Ups',
+  'calf raise': 'Standing Dumbbell Calf Raise',
+  'shrug': 'Dumbbell Shrug',
+  'tricep extension': 'Standing Dumbbell Triceps Extension',
+  'tricep kickback': 'Tricep Dumbbell Kickback',
+  'kickback': 'Tricep Dumbbell Kickback',
+}
+
 const STOPWORDS = new Set(['with', 'the', 'a', 'an', 'and', 'of', 'to', 'on'])
 
 // Dictation and typing both produce run-together forms the database spells
@@ -125,20 +168,35 @@ function dice(a, b) {
   return (2 * shared) / (a.size + b.size)
 }
 
+// Preferred equipment, e.g. ['dumbbell', 'body only']. Empty or missing means
+// no preference. Exercises with no listed equipment are never penalised.
+function equipmentSet(ctx) {
+  return ctx.equipment?.length ? new Set(ctx.equipment) : null
+}
+
+function prefersDumbbell(prefer) {
+  return !!prefer && prefer.has('dumbbell') && !prefer.has('barbell')
+}
+
+function equipmentBias(e, prefer) {
+  if (!prefer || e.source !== 'db' || e.equipment == null) return 0
+  return prefer.has(e.equipment) ? 0.05 : -0.08
+}
+
 // Where a name came from, so the UI can label it: your own history, a custom
 // exercise you made, or the standard database.
 function pool({ history = [], custom = [] }) {
   const seen = new Set()
   const out = []
-  const add = (name, source) => {
+  const add = (name, source, equipment = null) => {
     const k = key(name)
     if (!k || seen.has(k)) return
     seen.add(k)
-    out.push({ name, source, key: k, tokens: new Set(tokenize(name)) })
+    out.push({ name, source, equipment, key: k, tokens: new Set(tokenize(name)) })
   }
   // The database wins a spelling clash, so a standard name is never shadowed
   // by an identical-looking history entry.
-  for (const e of DB_KEYS) add(e.name, 'db')
+  for (const e of DB_KEYS) add(e.name, 'db', e.equipment)
   for (const n of custom) add(n, 'custom')
   for (const n of history) add(n, 'yours')
   return out
@@ -153,33 +211,52 @@ function pool({ history = [], custom = [] }) {
  * which is what lets the UI offer "add as custom" instead of guessing.
  */
 export function matchName(text, ctx = {}) {
-  const k = key(text)
+  const qTokens = tokenize(text)
+  const k = qTokens.join(' ')
   if (!k) return { confident: false, best: null, candidates: [] }
 
   const entries = pool(ctx)
+  const prefer = equipmentSet(ctx)
+  const confidentHit = (hit) => ({ confident: true, best: hit, candidates: [hit] })
 
   // Your own and custom names first: if you already use "Bench Press", it wins.
   const own = entries.find((e) => e.key === k && e.source !== 'db')
-  if (own) return { confident: true, best: own, candidates: [own] }
+  if (own) return confidentHit(own)
+
+  // "db curl" always means the dumbbell version, whatever equipment is
+  // preferred. Without "db", dumbbell-only equipment gets the same treatment.
+  const forcedDumbbell = qTokens.includes('dumbbell')
+  if (forcedDumbbell || prefersDumbbell(prefer)) {
+    const bare = qTokens.filter((t) => t !== 'dumbbell').join(' ')
+    const target = DUMBBELL_ALIASES[forcedDumbbell ? bare : k]
+    const hit = target && entries.find((e) => e.name === target)
+    if (hit) return confidentHit(hit)
+  }
 
   const aliasTarget = ALIASES[k]
   if (aliasTarget) {
     const hit = entries.find((e) => e.name === aliasTarget)
-    if (hit) return { confident: true, best: hit, candidates: [hit] }
+    if (hit) return confidentHit(hit)
   }
 
   const exact = entries.find((e) => e.key === k)
-  if (exact) return { confident: true, best: exact, candidates: [exact] }
+  if (exact) return confidentHit(exact)
 
-  const q = new Set(tokenize(text))
-  const ranked = entries
-    .map((e) => ({ ...e, score: dice(q, e.tokens) }))
+  // An unknown "db ..." phrase is only ever matched against dumbbell
+  // exercises, so it can't come back as a barbell lift.
+  const candidates = forcedDumbbell ? entries.filter((e) => e.source !== 'db' || e.equipment === 'dumbbell') : entries
+  const q = new Set(qTokens)
+  const ranked = candidates
+    .map((e) => {
+      const score = dice(q, e.tokens)
+      return { ...e, score, rank: score + equipmentBias(e, prefer) }
+    })
     .filter((e) => e.score > 0)
-    .sort((a, b) => b.score - a.score || a.name.length - b.name.length)
+    .sort((a, b) => b.rank - a.rank || a.name.length - b.name.length)
     .slice(0, 5)
 
   const [top, second] = ranked
-  const confident = !!top && top.score >= 0.75 && (!second || top.score - second.score >= 0.1)
+  const confident = !!top && top.score >= 0.75 && (!second || top.rank - second.rank >= 0.1)
   return { confident, best: confident ? top : null, candidates: ranked }
 }
 
@@ -192,15 +269,24 @@ export function isKnownName(name, ctx = {}) {
   return pool(ctx).some((e) => e.key === k)
 }
 
+// Typed shorthand, as in "db curl", expanded for substring matching.
+const SHORTHAND = { db: 'dumbbell', dumbell: 'dumbbell', dumbells: 'dumbbell', dumbbells: 'dumbbell', bb: 'barbell', kb: 'kettlebell' }
+
 /**
  * Autocomplete suggestions. Your own names come first, then custom, then the
  * database; the database is never dumped on an empty query.
  */
 export function suggest(query, ctx = {}, limit = 8) {
   const q = (query ?? '').toLowerCase().trim()
-  const words = q.split(/\s+/).filter(Boolean)
+  const words = q
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => SHORTHAND[w] ?? w)
   const entries = pool(ctx)
+  const prefer = equipmentSet(ctx)
   const rank = { yours: 0, custom: 1, db: 2 }
+  // Within the database, exercises you have the equipment for come first.
+  const offKit = (e) => (e.source === 'db' && prefer && e.equipment != null && !prefer.has(e.equipment) ? 1 : 0)
 
   const pick = entries.filter((e) => {
     if (!words.length) return e.source !== 'db'
@@ -208,14 +294,17 @@ export function suggest(query, ctx = {}, limit = 8) {
     return words.every((w) => lower.includes(w))
   })
 
-  pick.sort((a, b) => rank[a.source] - rank[b.source] || a.name.length - b.name.length || a.name.localeCompare(b.name))
+  pick.sort((a, b) => rank[a.source] - rank[b.source] || offKit(a) - offKit(b) || a.name.length - b.name.length || a.name.localeCompare(b.name))
   return pick.slice(0, limit).map(({ name, source }) => ({ name, source }))
 }
 
 // Exercises for a set of muscle groups (theme browsing).
-export function byMuscles(muscles, { exclude = ['stretching', 'cardio'] } = {}) {
+export function byMuscles(muscles, { exclude = ['stretching', 'cardio'], equipment = [] } = {}) {
   const want = new Set(muscles)
-  return DB.filter((e) => want.has(e.muscle) && !exclude.includes(e.category))
+  const eq = equipment.length ? new Set(equipment) : null
+  return DB.filter(
+    (e) => want.has(e.muscle) && !exclude.includes(e.category) && (!eq || e.equipment == null || eq.has(e.equipment))
+  )
 }
 
 export const MUSCLES = [...new Set(DB.map((e) => e.muscle).filter(Boolean))].sort()

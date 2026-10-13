@@ -161,6 +161,32 @@ describe('name resolution', () => {
   })
 })
 
+describe('dumbbell shorthand and equipment', () => {
+  const mine = { equipment: ['dumbbell', 'body only'] }
+
+  it('reads "db curl" as the dumbbell curl instead of flagging it', () => {
+    const it = first('db curl 3x12 at 25')
+    expect(it).toMatchObject({ name: 'Dumbbell Bicep Curl', resolved: true })
+    expect(reps(it)).toEqual([12, 12, 12])
+    expect(weights(it)).toEqual([25, 25, 25])
+  })
+
+  it('splits a run of "db" exercises correctly', () => {
+    const items = parse('db bench press 3 sets of 10 at 40 db row 3 sets of 12 at 35 db curl 3x12 at 25')
+    expect(items.map((i) => i.name)).toEqual(['Dumbbell Bench Press', 'One-Arm Dumbbell Row', 'Dumbbell Bicep Curl'])
+  })
+
+  it('resolves everyday names to dumbbell versions when that is all you have', () => {
+    const items = parse('bench press 3x10 at 40 squat 3x10 at 30 row 3x10 at 35', mine)
+    expect(items.map((i) => i.name)).toEqual(['Dumbbell Bench Press', 'Dumbbell Squat', 'One-Arm Dumbbell Row'])
+    expect(items.every((i) => i.resolved)).toBe(true)
+  })
+
+  it('keeps bodyweight work as is', () => {
+    expect(first('pushups 3 sets of 12', mine).name).toBe('Pushups')
+  })
+})
+
 describe('flags and fallbacks', () => {
   it('honours the bodyweight keyword', () => {
     expect(first('squat 3 sets of 10 bodyweight').bodyweight).toBe(true)

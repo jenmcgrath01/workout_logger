@@ -3,11 +3,11 @@ import { itemToEntry, parseQuickAdd, resolveItemAs, summarizeSets } from '../lib
 
 const EXAMPLE = 'bench press 3 sets of 10 at 135\nsquat 185 for 5, 205 for 5\nrest 90 seconds\nplank 30 seconds\nrun 30 minutes 3 miles'
 
-export default function QuickAdd({ date, entries, catalog, custom, onAdd, onAddCustom, onClose }) {
+export default function QuickAdd({ date, entries, catalog, custom, equipment, onAdd, onAddCustom, onClose }) {
   const [text, setText] = useState('')
   const [parsed, setParsed] = useState(null)
 
-  const ctx = { history: catalog, custom, entries }
+  const ctx = { history: catalog, custom, entries, equipment }
 
   function preview() {
     setParsed(parseQuickAdd(text, ctx))

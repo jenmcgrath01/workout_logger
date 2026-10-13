@@ -215,7 +215,7 @@ function strengthItem(nameTokens, specText, ctx) {
   const history = ctx.history ?? []
   const customNames = Object.keys(ctx.custom ?? {})
 
-  const match = matchName(nameText, { history, custom: customNames })
+  const match = matchName(nameText, { history, custom: customNames, equipment: ctx.equipment })
   const resolved = match.confident
   const name = resolved ? match.best.name : sentenceCase(nameText)
   const source = resolved ? match.best.source : isKnownName(nameText, { history, custom: customNames }) ? 'yours' : 'new'

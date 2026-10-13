@@ -20,6 +20,8 @@ export default function PlanView({
   catalog,
   custom,
   onAddCustom,
+  equipment,
+  onEquipmentChange,
   cardioCatalog,
   onAddExercise,
   onAddRest,
@@ -118,6 +120,7 @@ export default function PlanView({
           catalog={catalog}
           custom={custom}
           onAddCustom={onAddCustom}
+          equipment={equipment}
           onSave={handleSave}
           onCancel={() => setAdding(false)}
         />
@@ -127,6 +130,7 @@ export default function PlanView({
           entries={entries}
           catalog={catalog}
           custom={custom}
+          equipment={equipment}
           onAddCustom={onAddCustom}
           onAdd={(drafts) => {
             onAddMany(drafts)
@@ -139,6 +143,8 @@ export default function PlanView({
           theme={themes[sessionDate] ?? ''}
           catalog={catalog}
           custom={custom}
+          equipment={equipment}
+          onEquipmentChange={onEquipmentChange}
           onAdd={handleAddPicked}
           onAddCustom={onAddCustom}
           onClose={() => setBrowsing(false)}

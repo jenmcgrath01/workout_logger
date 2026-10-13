@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Autocomplete from './Autocomplete'
 import CustomExercisePrompt from './CustomExercisePrompt'
 import SetRow from './SetRow'
-import { defaultsFor, isKnownName, suggest } from '../lib/exerciseDb'
+import { defaultsFor, isKnownName, matchName, suggest } from '../lib/exerciseDb'
 import { DEFAULT_HOLD_SECONDS, draftFromName, emptySet, lastTimeFor } from '../lib/draft'
 
 function formatDate(dateISO) {
@@ -23,7 +23,18 @@ function asActuals(set) {
   }
 }
 
-export default function ExerciseForm({ mode, date, entry, entries = [], catalog, custom = {}, onAddCustom, onSave, onCancel }) {
+export default function ExerciseForm({
+  mode,
+  date,
+  entry,
+  entries = [],
+  catalog,
+  custom = {},
+  equipment,
+  onAddCustom,
+  onSave,
+  onCancel,
+}) {
   const editingPlanned = mode === 'edit' && entry?.status === 'planned'
   const usesTargetInputs = mode === 'plan' || editingPlanned
   const usesActualInputs = mode === 'log' || (mode === 'edit' && !editingPlanned)
@@ -42,14 +53,17 @@ export default function ExerciseForm({ mode, date, entry, entries = [], catalog,
   const [filledFrom, setFilledFrom] = useState(null)
   // True while the "this will be a custom exercise" confirmation is showing.
   const [askCustom, setAskCustom] = useState(false)
+  // Set when saving swapped what you typed for the standard name.
+  const [standardized, setStandardized] = useState(null)
 
   // Names the app already recognises: standard database, your history, and
   // exercises you've made custom.
-  const nameCtx = { history: catalog, custom: Object.keys(custom) }
+  const nameCtx = { history: catalog, custom: Object.keys(custom), equipment }
 
   function handleNameChange(name) {
     setExerciseName(name)
     setAskCustom(false)
+    setStandardized(null)
     if (mode === 'edit' || !pristine) return
 
     if (lastTimeFor(name, entries)) {
@@ -114,6 +128,19 @@ export default function ExerciseForm({ mode, date, entry, entries = [], catalog,
   function handleSubmit(e) {
     e.preventDefault()
     if (!exerciseName.trim()) return
+    const match = matchName(exerciseName, nameCtx)
+    if (match.confident) {
+      // "db curl" or "bench press": keep names consistent by using the standard
+      // one — but say so, and let the next press confirm, rather than renaming
+      // quietly.
+      if (match.best.name !== exerciseName.trim()) {
+        handleNameChange(match.best.name)
+        setStandardized(match.best.name)
+        return
+      }
+      save()
+      return
+    }
     // A name the app has never seen is a new custom exercise — say so and ask,
     // rather than quietly saving it.
     if (!isKnownName(exerciseName, nameCtx)) {
@@ -160,12 +187,16 @@ export default function ExerciseForm({ mode, date, entry, entries = [], catalog,
           value={exerciseName}
           onChange={handleNameChange}
           suggest={(q) => suggest(q, nameCtx)}
-          onCreate={() => setAskCustom(true)}
+          // Shorthand like "db curl" is recognised, so don't offer to create it.
+          onCreate={matchName(exerciseName, nameCtx).confident ? undefined : () => setAskCustom(true)}
           placeholder="Exercise name"
           required
         />
       </label>
       {filledFrom && <p className="exercise-form__hint">Filled in from {formatDate(filledFrom)} — change anything.</p>}
+      {standardized && (
+        <p className="exercise-form__hint">Using the standard name “{standardized}” — press the button again to confirm.</p>
+      )}
 
       <label className="field field--checkbox">
         <input type="checkbox" checked={bodyweight} onChange={(e) => toggleBodyweight(e.target.checked)} />

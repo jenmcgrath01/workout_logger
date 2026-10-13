@@ -3,6 +3,7 @@ import { loadEntries, addEntry, addEntries, updateEntry, deleteEntry, swapEntrie
 import { getExerciseCatalog } from './lib/exercises'
 import { loadThemes, setDayTheme, getThemeCatalog } from './lib/themes'
 import { loadCustom, addCustom } from './lib/customExercises'
+import { loadEquipment, saveEquipment } from './lib/equipment'
 import HomeView from './components/HomeView'
 import PlanView from './components/PlanView'
 import LogExerciseView from './components/LogExerciseView'
@@ -23,6 +24,7 @@ function App() {
   const cardioCatalog = useMemo(() => getExerciseCatalog(entries, 'cardio'), [entries])
   const [themes, setThemes] = useState(() => loadThemes())
   const [custom, setCustom] = useState(() => loadCustom())
+  const [equipment, setEquipment] = useState(() => loadEquipment())
   const themeCatalog = useMemo(() => getThemeCatalog(themes), [themes])
   const activeEntry = entries.find((e) => e.id === activeEntryId) ?? null
 
@@ -62,6 +64,11 @@ function App() {
 
   function handleAddCustom(name, info) {
     setCustom({ ...addCustom(name, info) })
+  }
+
+  function handleEquipmentChange(list) {
+    saveEquipment(list)
+    setEquipment(list)
   }
 
   function handleSaveTheme(date, theme) {
@@ -110,6 +117,8 @@ function App() {
         catalog={catalog}
         custom={custom}
         onAddCustom={handleAddCustom}
+        equipment={equipment}
+        onEquipmentChange={handleEquipmentChange}
         onAddExercise={handleAdd}
         onAddRest={handleAddRest}
         onAddCardio={handleAddCardio}
@@ -166,6 +175,7 @@ function App() {
             catalog={catalog}
             custom={custom}
             onAddCustom={handleAddCustom}
+            equipment={equipment}
             onSave={(entryData) => {
               handleAdd(entryData)
               goHome()
@@ -256,6 +266,7 @@ function App() {
           catalog={catalog}
           custom={custom}
           onAddCustom={handleAddCustom}
+          equipment={equipment}
           onSave={(entryData) => {
             handlePersist(activeEntry.id, entryData)
             setScreen(editReturnScreen)

@@ -4,6 +4,8 @@ import CardioCard from './CardioCard'
 import DayTheme from './DayTheme'
 import { addDays } from '../lib/storage'
 import { runLabel } from '../lib/runner'
+import { summarize } from '../lib/health'
+import HealthCard from './HealthCard'
 
 function formatDateLabel(dateISO, today) {
   if (dateISO === today) return 'Today'
@@ -20,6 +22,8 @@ export default function HomeView({
   onDateChange,
   onStartPlan,
   onStartRun,
+  health,
+  onOpenHealth,
   onLogFly,
   onOpenLog,
   onEdit,
@@ -39,8 +43,6 @@ export default function HomeView({
 
   return (
     <div className="home-view">
-      <p className="app-title">Workout Tracker</p>
-
       <div className="date-nav">
         <button
           type="button"
@@ -73,6 +75,8 @@ export default function HomeView({
       <div className="home-view__theme">
         <DayTheme date={selectedDate} theme={theme} catalog={themeCatalog} onSave={onSaveTheme} />
       </div>
+
+      <HealthCard summary={summarize(health, today)} onOpen={onOpenHealth} />
 
       <div className="home-view__actions">
         {startLabel && (

@@ -5,6 +5,7 @@ import { loadThemes, setDayTheme, getThemeCatalog } from './lib/themes'
 import { loadCustom, addCustom } from './lib/customExercises'
 import { loadEquipment, saveEquipment } from './lib/equipment'
 import { unlockAudio } from './lib/audio'
+import { loadHealth, saveHealth } from './lib/health'
 import { firstUnfinished, needsRestStart, nextLiveIndex, stepIds } from './lib/runner'
 import HomeView from './components/HomeView'
 import PlanView from './components/PlanView'
@@ -13,6 +14,8 @@ import ExerciseForm from './components/ExerciseForm'
 import RestForm from './components/RestForm'
 import CardioForm from './components/CardioForm'
 import RunView from './components/RunView'
+import HealthView from './components/HealthView'
+import TopBar from './components/TopBar'
 
 function App() {
   const [entries, setEntries] = useState(() => loadEntries())
@@ -30,6 +33,7 @@ function App() {
   const [themes, setThemes] = useState(() => loadThemes())
   const [custom, setCustom] = useState(() => loadCustom())
   const [equipment, setEquipment] = useState(() => loadEquipment())
+  const [health, setHealth] = useState(() => loadHealth())
   const themeCatalog = useMemo(() => getThemeCatalog(themes), [themes])
   const activeEntry = entries.find((e) => e.id === activeEntryId) ?? null
 
@@ -74,6 +78,19 @@ function App() {
   function handleEquipmentChange(list) {
     saveEquipment(list)
     setEquipment(list)
+  }
+
+  function handleHealthChange(next) {
+    saveHealth(next)
+    setHealth(next)
+  }
+
+  // The hamburger menu: leaving any screen (including a guided workout, which
+  // Resume can pick back up) for a top-level page.
+  function navigate(target) {
+    setActiveEntryId(null)
+    setRun(null)
+    setScreen(target === 'health' ? 'health' : 'home')
   }
 
   function handleSaveTheme(date, theme) {
@@ -197,6 +214,8 @@ function App() {
         onDone={goHome}
       />
     )
+  } else if (screen === 'health') {
+    content = <HealthView health={health} today={today} onChange={handleHealthChange} />
   } else if (screen === 'run' && run) {
     content = (
       <RunView
@@ -367,6 +386,8 @@ function App() {
         onDateChange={setSelectedDate}
         onStartPlan={() => setScreen('plan')}
         onStartRun={startRun}
+        health={health}
+        onOpenHealth={() => setScreen('health')}
         onLogFly={() => {
           setFlyType('exercise')
           setScreen('log-fly')
@@ -386,7 +407,10 @@ function App() {
 
   return (
     <div className="app">
-      <main className="app__content">{content}</main>
+      <main className="app__content">
+        <TopBar screen={screen} onNavigate={navigate} />
+        {content}
+      </main>
     </div>
   )
 }

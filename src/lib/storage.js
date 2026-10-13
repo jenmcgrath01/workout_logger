@@ -1,6 +1,6 @@
 const STORAGE_KEY = 'workout-tracker-entries'
 
-function uuid() {
+export function uuid() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0

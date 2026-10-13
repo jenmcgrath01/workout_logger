@@ -411,6 +411,344 @@ body {
   background: linear-gradient(to top, var(--bg) 70%, transparent);
 }
 
+/* Top bar and menu */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -6px 0 6px;
+}
+
+.topbar__menu {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 44px;
+  height: 44px;
+  margin-left: -10px;
+  padding: 0 11px;
+  background: none;
+  border: none;
+  touch-action: manipulation;
+}
+
+.topbar__menu span {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--text);
+}
+
+.topbar__title {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.drawer__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 41;
+  width: min(300px, 82vw);
+  padding: 16px 14px;
+  padding-top: calc(16px + env(safe-area-inset-top));
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.drawer__title {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.drawer__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 56px;
+  margin-bottom: 6px;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--text);
+  text-align: left;
+  touch-action: manipulation;
+}
+
+.drawer__item.is-current {
+  border-color: var(--accent);
+}
+
+.drawer__label {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.drawer__hint {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+/* Health */
+.health-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  text-align: left;
+  touch-action: manipulation;
+}
+
+.health-card__stats {
+  display: flex;
+  gap: 18px;
+}
+
+.health-card__stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.health-card__label {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
+.health-card__value {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.health-card__invite {
+  font-weight: 600;
+}
+
+.health-card__chevron {
+  color: var(--accent);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  min-width: 0;
+}
+
+.metric__label {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
+.metric__value {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.metric__sub {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+}
+
+.health-view__ranges {
+  margin-bottom: 4px;
+}
+
+.health-view__chart {
+  margin-bottom: 8px;
+}
+
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.chart-empty,
+.chart-note {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  margin: 6px 0 0;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  margin: 6px 0 0;
+}
+
+.chart-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.chart-legend__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.chart-legend__dash {
+  width: 14px;
+  border-top: 2px dashed var(--text-dim);
+}
+
+.health-view__add {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 14px 0 8px;
+}
+
+.health-view__add .btn {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.health-empty {
+  color: var(--text-dim);
+}
+
+.health-form__hint,
+.health-form__context {
+  display: block;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+.health-form__context {
+  margin: -6px 0 12px;
+}
+
+.health-form__error {
+  color: var(--danger);
+  font-size: 0.9rem;
+  margin: 0 0 10px;
+}
+
+.health-form__flash {
+  color: var(--accent);
+  font-size: 0.9rem;
+  margin: 0 0 10px;
+}
+
+.health-form__ideas {
+  margin: 8px 0 0;
+}
+
+.health-form__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.health-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.health-history__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.health-history__kind {
+  width: 54px;
+  flex-shrink: 0;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.health-history__main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.health-history__value {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.health-history__date {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+
+.health-history .btn {
+  min-height: 40px;
+  padding: 8px 6px;
+  font-size: 0.85rem;
+}
+
+.health-history__delete {
+  color: var(--danger);
+}
+
+.health-settings .input {
+  max-width: 140px;
+}
+
 /* Guided workout */
 .run-view__top {
   display: flex;

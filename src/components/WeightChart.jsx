@@ -13,7 +13,7 @@ const fmtTick = (t) => (Number.isInteger(t) ? String(t) : t.toFixed(1))
 // Weight over time. The line takes the colour of the dose you were on, dose
 // steps are labelled where they happen, and events (trips, illness) are dashed
 // vertical markers. A thin dashed line shows the 7-entry average.
-export default function WeightChart({ points, changes, events, startISO, endISO }) {
+export default function WeightChart({ points, changes, events, pens = [], startISO, endISO }) {
   const pts = points.filter((p) => p.date >= startISO && p.date <= endISO)
   const x = scale(dayNumber(startISO), dayNumber(endISO), M.l, W - M.r)
   const xs = pts.map((p) => x(dayNumber(p.date)))
@@ -67,6 +67,8 @@ export default function WeightChart({ points, changes, events, startISO, endISO 
       rows[row].push({ right: cx + w / 2 })
       return { ...e, label, w, px, cx, cy: 4 + row * 17 }
     })
+
+  const penMarks = pens.filter((d) => d.date >= startISO && d.date <= endISO).map((d) => ({ ...d, px: x(dayNumber(d.date)) }))
 
   const h = hover.index
   const hp = h != null ? pts[h] : null
@@ -123,6 +125,18 @@ export default function WeightChart({ points, changes, events, startISO, endISO 
         pts.map((p, i) => (
           <circle key={p.id} cx={xs[i]} cy={y(p.weight)} r="2.6" fill="var(--surface-2)" stroke={colorForDose(p.dose)} strokeWidth="1.5" />
         ))}
+
+      {penMarks.map((d) => (
+        <polygon
+          key={`pen${d.id}`}
+          points={`${d.px},${H - M.b - 6} ${d.px + 5},${H - M.b} ${d.px},${H - M.b + 6} ${d.px - 5},${H - M.b}`}
+          fill={colorForDose(d.mg)}
+          stroke="var(--surface-2)"
+          strokeWidth="1"
+        >
+          <title>{`New pen: ${d.mg} mg on ${fmtDate(d.date)}`}</title>
+        </polygon>
+      ))}
 
       {doseChips.map((c) => (
         <g key={c.date}>

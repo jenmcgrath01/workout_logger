@@ -1,14 +1,20 @@
 import { useState } from 'react'
 import {
-  RANGES, addEvent, colorForDose, deleteItem, doseChanges, rangeStartISO, setHalfLife, summarize, upsertDose, upsertWeight, weightPoints,
+  RANGES, addEvent, colorForDose, deleteItem, doseChanges, penStarts, rangeStartISO, setHalfLife, summarize, upsertDose, upsertWeight, weightPoints,
 } from '../lib/health'
 import { fmtDate } from '../lib/useChartHover'
+import AddMenu from './AddMenu'
 import HealthEntryForm from './HealthEntryForm'
 import OnBoardChart from './OnBoardChart'
 import WeightChart from './WeightChart'
 
 const KINDS = { weight: 'weights', dose: 'doses', event: 'events' }
-const HISTORY_LIMIT = 12
+const HISTORY_LIMIT = 6
+const SECTIONS = [
+  { kind: 'dose', title: 'Doses', empty: 'No doses logged yet.' },
+  { kind: 'weight', title: 'Weights', empty: 'No weigh-ins logged yet.' },
+  { kind: 'event', title: 'Events', empty: 'No events logged yet.' },
+]
 
 function rowText(kind, item) {
   if (kind === 'weight') return `${item.weight} lb`
@@ -19,7 +25,8 @@ function rowText(kind, item) {
 export default function HealthView({ health, today, onChange }) {
   const [range, setRange] = useState('All')
   const [form, setForm] = useState(null)
-  const [showAll, setShowAll] = useState(false)
+  const [expanded, setExpanded] = useState({})
+  const [tab, setTab] = useState('dose')
 
   const summary = summarize(health, today)
   const firstDates = [health.weights[0]?.date, health.doses[0]?.date].filter(Boolean).sort()
@@ -60,18 +67,19 @@ export default function HealthView({ health, today, onChange }) {
     )
   }
 
-  const history = [
-    ...health.weights.map((item) => ({ kind: 'weight', item })),
-    ...health.doses.map((item) => ({ kind: 'dose', item })),
-    ...health.events.map((item) => ({ kind: 'event', item })),
-  ].sort((a, b) => (a.item.date < b.item.date ? 1 : a.item.date > b.item.date ? -1 : 0))
-  const shownHistory = showAll ? history : history.slice(0, HISTORY_LIMIT)
+  // Newest first, one list per kind.
+  const newestFirst = (list) => [...list].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+  const lists = { dose: newestFirst(health.doses), weight: newestFirst(health.weights), event: newestFirst(health.events) }
+  const pens = penStarts(health.doses)
 
   const add = (kind) => setForm({ kind, initial: {} })
 
   return (
     <div className="health-view">
-      <h1 className="page-title">Health</h1>
+      <div className="health-view__head">
+        <h1 className="page-title">Health</h1>
+        <AddMenu onPick={add} />
+      </div>
 
       {!summary.hasData ? (
         <div className="health-empty">
@@ -117,7 +125,7 @@ export default function HealthView({ health, today, onChange }) {
             <h2 className="section-title">Weight and dose</h2>
             {health.weights.length > 0 ? (
               <>
-                <WeightChart points={points} changes={changes} events={health.events} startISO={startISO} endISO={endISO} />
+                <WeightChart points={points} changes={changes} events={health.events} pens={pens} startISO={startISO} endISO={endISO} />
                 <p className="chart-legend">
                   {dosesShown.map((d) => (
                     <span key={d} className="chart-legend__item">
@@ -128,6 +136,11 @@ export default function HealthView({ health, today, onChange }) {
                   <span className="chart-legend__item">
                     <span className="chart-legend__dash" />7-entry average
                   </span>
+                  {pens.some((d) => d.date >= startISO && d.date <= endISO) && (
+                    <span className="chart-legend__item">
+                      <span aria-hidden="true">◆</span> New pen
+                    </span>
+                  )}
                 </p>
               </>
             ) : (
@@ -157,54 +170,74 @@ export default function HealthView({ health, today, onChange }) {
         </>
       )}
 
-      <div className="health-view__add">
-        <button type="button" className="btn btn--primary btn--full" onClick={() => add('weight')}>
-          + Weight
-        </button>
-        <button type="button" className="btn btn--secondary btn--full" onClick={() => add('dose')}>
-          + Dose
-        </button>
-        <button type="button" className="btn btn--secondary btn--full" onClick={() => add('event')}>
-          + Event
-        </button>
+      <h2 className="section-title">History</h2>
+      <div className="tabs" role="tablist" aria-label="History">
+        {SECTIONS.map(({ kind, title }) => (
+          <button
+            key={kind}
+            type="button"
+            role="tab"
+            aria-selected={tab === kind}
+            className={`tabs__tab ${tab === kind ? 'is-selected' : ''}`}
+            onClick={() => setTab(kind)}
+          >
+            {title} <span className="tabs__count">{lists[kind].length}</span>
+          </button>
+        ))}
       </div>
 
-      {history.length > 0 && (
-        <section>
-          <h2 className="section-title">History</h2>
-          <ul className="health-history">
-            {shownHistory.map(({ kind, item }) => (
-              <li key={`${kind}${item.id}`} className="health-history__row">
-                <span className={`health-history__kind health-history__kind--${kind}`}>{kind}</span>
-                <span className="health-history__main">
-                  <span className="health-history__value">{rowText(kind, item)}</span>
-                  <span className="health-history__date">{fmtDate(item.date)}</span>
-                </span>
-                <button
-                  type="button"
-                  className="btn btn--link"
-                  onClick={() =>
-                    setForm({
-                      kind,
-                      initial: { id: item.id, date: item.date, weight: item.weight, mg: item.mg, label: item.label },
-                    })
-                  }
-                >
-                  Edit
-                </button>
-                <button type="button" className="btn btn--link health-history__delete" onClick={() => remove(kind, item)}>
-                  Delete
-                </button>
-              </li>
-            ))}
-          </ul>
-          {history.length > HISTORY_LIMIT && (
-            <button type="button" className="btn btn--link" onClick={() => setShowAll((v) => !v)}>
-              {showAll ? 'Show fewer' : `Show all ${history.length}`}
-            </button>
-          )}
-        </section>
-      )}
+      {SECTIONS.filter((sec) => sec.kind === tab).map(({ kind, empty }) => {
+        const items = lists[kind]
+        const shown = expanded[kind] ? items : items.slice(0, HISTORY_LIMIT)
+        return (
+          <section key={kind} className="health-history-section" role="tabpanel">
+            {items.length === 0 ? (
+              <p className="chart-empty">{empty}</p>
+            ) : (
+              <ul className="health-history">
+                {shown.map((item) => (
+                  <li key={item.id} className="health-history__row">
+                    <span className="health-history__main">
+                      <span className="health-history__value">
+                        {rowText(kind, item)}
+                        {item.newPen && (
+                          <span className="pen-badge" style={{ '--pen': colorForDose(item.mg) }}>
+                            <span aria-hidden="true">◆</span> New pen
+                          </span>
+                        )}
+                      </span>
+                      <span className="health-history__date">
+                        {fmtDate(item.date)}
+                        {item.site ? ` · ${item.site}` : ''}
+                      </span>
+                    </span>
+                    <button
+                      type="button"
+                      className="btn btn--link"
+                      onClick={() =>
+                        setForm({
+                          kind,
+                          initial: { id: item.id, date: item.date, weight: item.weight, mg: item.mg, label: item.label, site: item.site, newPen: item.newPen },
+                        })
+                      }
+                    >
+                      Edit
+                    </button>
+                    <button type="button" className="btn btn--link health-history__delete" onClick={() => remove(kind, item)}>
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {items.length > HISTORY_LIMIT && (
+              <button type="button" className="btn btn--link" onClick={() => setExpanded((e) => ({ ...e, [kind]: !e[kind] }))}>
+                {expanded[kind] ? 'Show fewer' : `Show all ${items.length}`}
+              </button>
+            )}
+          </section>
+        )
+      })}
 
       <section>
         <h2 className="section-title">Settings</h2>

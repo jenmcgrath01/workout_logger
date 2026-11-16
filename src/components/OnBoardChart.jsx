@@ -63,16 +63,26 @@ export default function OnBoardChart({ doses, halfLifeDays, events, startISO, en
       <polygon points={area} fill="var(--accent)" fillOpacity="0.22" />
       <polyline points={line} fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinejoin="round" />
       {visibleDoses.length <= 60 &&
-        visibleDoses.map((d) => (
-          <circle key={d.id} cx={x(dayNumber(d.date))} cy={y(series.find((s) => s.date === d.date)?.mg ?? 0)} r="3" fill={colorForDose(d.mg)} stroke="var(--surface-2)" strokeWidth="1" />
-        ))}
+        visibleDoses.map((d) => {
+          const cx = x(dayNumber(d.date))
+          const cy = y(series.find((s) => s.date === d.date)?.mg ?? 0)
+          const color = colorForDose(d.mg)
+          // A new pen is a diamond, an ordinary dose a dot.
+          return d.newPen ? (
+            <polygon key={d.id} points={`${cx},${cy - 7} ${cx + 6},${cy} ${cx},${cy + 7} ${cx - 6},${cy}`} fill={color} stroke="var(--surface-2)" strokeWidth="1.2">
+              <title>{`New pen: ${d.mg} mg on ${fmtDate(d.date)}`}</title>
+            </polygon>
+          ) : (
+            <circle key={d.id} cx={cx} cy={cy} r="3" fill={color} stroke="var(--surface-2)" strokeWidth="1" />
+          )
+        })}
 
       {hs && (
         <g pointerEvents="none">
           <line x1={xs[h]} x2={xs[h]} y1={M.t} y2={H - M.b} stroke="var(--text-dim)" strokeWidth="1" />
           <circle cx={xs[h]} cy={y(hs.mg)} r="4.5" fill="var(--accent)" stroke="var(--surface-2)" strokeWidth="1.5" />
           <g transform={`translate(${xs[h] > W / 2 ? xs[h] - 142 : xs[h] + 8}, ${M.t + 4})`}>
-            <rect width="134" height="56" rx="6" fill="var(--surface-2)" stroke="var(--border)" strokeWidth="0.5" />
+            <rect width="134" height={hoverDose?.site ? 72 : 56} rx="6" fill="var(--surface-2)" stroke="var(--border)" strokeWidth="0.5" />
             <text x="8" y="16" fontSize="11" fill="var(--text-dim)">
               {fmtDate(hs.date)}
             </text>
@@ -80,8 +90,13 @@ export default function OnBoardChart({ doses, halfLifeDays, events, startISO, en
               {hs.mg.toFixed(1)} mg on board
             </text>
             <text x="8" y="49" fontSize="11" fill="var(--text-dim)">
-              {hoverDose ? `${hoverDose.mg} mg dose today` : `on ${doseAt(doses, hs.date) ?? '–'} mg`}
+              {hoverDose ? `${hoverDose.mg} mg dose${hoverDose.newPen ? ' · new pen' : ''}` : `on ${doseAt(doses, hs.date) ?? '–'} mg`}
             </text>
+            {hoverDose?.site && (
+              <text x="8" y="65" fontSize="11" fill="var(--text-dim)">
+                {hoverDose.site}
+              </text>
+            )}
           </g>
         </g>
       )}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { addDaysISO, DOSE_PRESETS } from '../lib/health'
+import { addDaysISO, DOSE_PRESETS, INJECTION_SITES, lastSite } from '../lib/health'
 import { relativeDay } from '../lib/chart'
 import { fmtDate } from '../lib/useChartHover'
 
@@ -15,6 +15,8 @@ export default function HealthEntryForm({ kind, initial = {}, health, today, onS
   const [weight, setWeight] = useState(initial.weight != null ? String(initial.weight) : '')
   const [mg, setMg] = useState(initial.mg ?? lastDose?.mg ?? null)
   const [mgText, setMgText] = useState('')
+  const [site, setSite] = useState(initial.site ?? '')
+  const [newPen, setNewPen] = useState(!!initial.newPen)
   const [label, setLabel] = useState(initial.label ?? '')
   const [error, setError] = useState('')
   const [flash, setFlash] = useState('')
@@ -26,6 +28,7 @@ export default function HealthEntryForm({ kind, initial = {}, health, today, onS
 
   // Context so a backfilled entry can be sanity-checked.
   const earlierDoses = health.doses.filter((d) => d.date <= date).slice(-2)
+  const previousSite = kind === 'dose' ? lastSite(health.doses, date) : null
   const existingWeight = health.weights.find((w) => w.date === date)
 
   function fail(message) {
@@ -42,7 +45,7 @@ export default function HealthEntryForm({ kind, initial = {}, health, today, onS
     }
     if (kind === 'dose') {
       if (!(doseValue > 0) || doseValue > 100) return fail('Pick or enter a dose in mg.')
-      return { kind, date, mg: doseValue }
+      return { kind, date, mg: doseValue, site, newPen }
     }
     if (!label.trim()) return fail('Give the event a short name.')
     return { kind, date, label: label.trim() }
@@ -57,6 +60,11 @@ export default function HealthEntryForm({ kind, initial = {}, health, today, onS
       setFlash(`Saved ${fmtDate(date)}`)
       setDate(nextDate)
       if (kind === 'weight') setWeight('')
+      // Each injection is a fresh site and, usually, not a new pen.
+      if (kind === 'dose') {
+        setSite('')
+        setNewPen(false)
+      }
     } else {
       onClose()
     }
@@ -141,6 +149,33 @@ export default function HealthEntryForm({ kind, initial = {}, health, today, onS
               Doses so far: {earlierDoses.map((d) => `${d.mg} mg on ${fmtDate(d.date)}`).join(' and ')}
             </p>
           )}
+
+          <div className="field">
+            <span className="field__label">Injection site (optional)</span>
+            <div className="site-grid">
+              {INJECTION_SITES.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={`chip ${site === s ? 'is-selected' : ''}`}
+                  aria-pressed={site === s}
+                  onClick={() => setSite(site === s ? '' : s)}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+            {previousSite && (
+              <span className="health-form__hint">
+                Last time: {previousSite.site} ({fmtDate(previousSite.date)})
+              </span>
+            )}
+          </div>
+
+          <label className="field field--checkbox">
+            <input type="checkbox" checked={newPen} onChange={(e) => setNewPen(e.target.checked)} />
+            <span>First dose of a new pen</span>
+          </label>
         </>
       )}
 

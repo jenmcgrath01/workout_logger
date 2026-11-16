@@ -641,18 +641,6 @@ body {
   border-top: 2px dashed var(--text-dim);
 }
 
-.health-view__add {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin: 14px 0 8px;
-}
-
-.health-view__add .btn {
-  padding-left: 8px;
-  padding-right: 8px;
-}
-
 .health-empty {
   color: var(--text-dim);
 }
@@ -704,16 +692,6 @@ body {
   gap: 8px;
   padding: 8px 0;
   border-bottom: 1px solid var(--border);
-}
-
-.health-history__kind {
-  width: 54px;
-  flex-shrink: 0;
-  color: var(--text-dim);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .health-history__main {
@@ -1343,4 +1321,127 @@ textarea.input {
     --text-dim: #6a6f7a;
     --border: #dfe2e7;
   }
+}
+
+/* Health: add menu, injection sites, pen marker, history by type */
+.health-view__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.health-view__head .page-title {
+  margin: 0;
+}
+
+.add-menu {
+  position: relative;
+}
+
+.add-menu__button {
+  min-height: 44px;
+  padding: 8px 16px;
+}
+
+.add-menu__list {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  min-width: 220px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.add-menu__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  text-align: left;
+  touch-action: manipulation;
+}
+
+.add-menu__item:last-child {
+  border-bottom: none;
+}
+
+.add-menu__label {
+  font-weight: 600;
+}
+
+.add-menu__hint {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+
+.site-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.site-grid .chip {
+  min-height: 44px;
+}
+
+.pen-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--pen, var(--accent));
+  color: var(--pen, var(--accent));
+  font-size: 0.7rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.tabs__tab {
+  min-height: 40px;
+  background: none;
+  border: none;
+  border-radius: 9px;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  font-weight: 600;
+  touch-action: manipulation;
+}
+
+.tabs__tab.is-selected {
+  background: var(--surface-2);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.tabs__count {
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.health-history-section {
+  margin-top: 4px;
 }

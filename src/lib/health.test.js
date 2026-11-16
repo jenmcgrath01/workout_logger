@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   addDaysISO, addEvent, colorForDose, dayNumber, deleteItem, doseAt, doseChanges, EMPTY_HEALTH, isoFromDay, movingAverage,
-  onBoard, onBoardSeries, rangeStartISO, setHalfLife, summarize, upsertDose, upsertWeight, weightPoints,
+  lastSite, onBoard, onBoardSeries, penStarts, rangeStartISO, setHalfLife, summarize, upsertDose, upsertWeight, weightPoints,
 } from './health'
 
 const h0 = () => structuredClone(EMPTY_HEALTH)
@@ -106,6 +106,25 @@ describe('edits', () => {
     expect(h.doses.map((d) => d.date)).toEqual(['2025-11-01', '2026-05-01'])
   })
 
+  it('stores the injection site and new-pen flag only when they are set', () => {
+    const plain = upsertDose(h0(), { date: '2026-03-01', mg: 5 }).doses[0]
+    expect(plain).not.toHaveProperty('site')
+    expect(plain).not.toHaveProperty('newPen')
+    const full = upsertDose(h0(), { date: '2026-03-01', mg: 5, site: 'Left thigh', newPen: true }).doses[0]
+    expect(full).toMatchObject({ site: 'Left thigh', newPen: true })
+    const off = upsertDose(h0(), { date: '2026-03-01', mg: 5, site: '', newPen: false }).doses[0]
+    expect(off).not.toHaveProperty('site')
+    expect(off).not.toHaveProperty('newPen')
+  })
+
+  it('relogging a dose replaces its site and pen flag too', () => {
+    let h = upsertDose(h0(), { date: '2026-03-01', mg: 5, site: 'Left arm', newPen: true })
+    h = upsertDose(h, { date: '2026-03-01', mg: 5, site: 'Right arm' })
+    expect(h.doses).toHaveLength(1)
+    expect(h.doses[0]).toMatchObject({ site: 'Right arm' })
+    expect(h.doses[0]).not.toHaveProperty('newPen')
+  })
+
   it('adds events and trims their label', () => {
     expect(addEvent(h0(), { date: '2026-03-01', label: '  Trip  ' }).events[0].label).toBe('Trip')
   })
@@ -196,5 +215,32 @@ describe('summarize', () => {
   it('does not count a dose dated in the future as the current dose', () => {
     const h = upsertDose(h0(), { date: '2026-12-01', mg: 5 })
     expect(summarize(h, '2026-10-13').currentDose).toBeNull()
+  })
+})
+
+describe('injection sites and pens', () => {
+  const doses = [
+    { id: 'a', date: '2026-01-01', mg: 2.5, site: 'Left thigh', newPen: true },
+    { id: 'b', date: '2026-01-08', mg: 2.5 },
+    { id: 'c', date: '2026-01-15', mg: 2.5, site: 'Right abdomen' },
+    { id: 'd', date: '2026-01-29', mg: 5, newPen: true },
+  ]
+
+  it('finds the last site used before a date, skipping doses with no site', () => {
+    expect(lastSite(doses, '2026-01-22')).toEqual({ site: 'Right abdomen', date: '2026-01-15' })
+    expect(lastSite(doses, '2026-01-10')).toEqual({ site: 'Left thigh', date: '2026-01-01' })
+  })
+
+  it('does not count the same day or later doses', () => {
+    expect(lastSite(doses, '2026-01-01')).toBeNull()
+    expect(lastSite(doses, '2026-01-15')).toEqual({ site: 'Left thigh', date: '2026-01-01' })
+  })
+
+  it('returns null when no site was ever logged', () => {
+    expect(lastSite([{ date: '2026-01-01', mg: 5 }], '2026-02-01')).toBeNull()
+  })
+
+  it('lists new-pen doses in date order', () => {
+    expect(penStarts([...doses].reverse()).map((d) => d.id)).toEqual(['a', 'd'])
   })
 })

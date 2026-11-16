@@ -9,6 +9,8 @@ export const DEFAULT_HALF_LIFE_DAYS = 7
 // Tirzepatide steps; matches the usual 2.5 mg ladder. Any other amount can be
 // typed in.
 export const DOSE_PRESETS = [2.5, 5, 7.5, 10, 12.5, 15]
+// Where the injection went. Stored as this exact text on the dose.
+export const INJECTION_SITES = ['Left arm', 'Right arm', 'Left thigh', 'Right thigh', 'Left abdomen', 'Right abdomen']
 
 export const EMPTY_HEALTH = { weights: [], doses: [], events: [], settings: { halfLifeDays: DEFAULT_HALF_LIFE_DAYS } }
 
@@ -57,10 +59,26 @@ export function upsertWeight(h, { date, weight }) {
   return { ...h, weights: [...rest, { id: uuid(), date, weight: Number(weight) }].sort(byDate) }
 }
 
-// One dose per day as well.
-export function upsertDose(h, { date, mg }) {
+// One dose per day as well. `site` (where it was injected) and `newPen` (the
+// first dose from a fresh pen) are optional and only stored when set.
+export function upsertDose(h, { date, mg, site, newPen }) {
   const rest = h.doses.filter((d) => d.date !== date)
-  return { ...h, doses: [...rest, { id: uuid(), date, mg: Number(mg) }].sort(byDate) }
+  const dose = { id: uuid(), date, mg: Number(mg) }
+  if (site) dose.site = site
+  if (newPen) dose.newPen = true
+  return { ...h, doses: [...rest, dose].sort(byDate) }
+}
+
+// The most recent injection site logged before a date, to help you rotate.
+export function lastSite(doses, dateISO) {
+  const prior = doses.filter((d) => d.site && d.date < dateISO).sort(byDate)
+  const last = prior[prior.length - 1]
+  return last ? { site: last.site, date: last.date } : null
+}
+
+// Doses that opened a new pen, oldest first.
+export function penStarts(doses) {
+  return doses.filter((d) => d.newPen).sort(byDate)
 }
 
 export function addEvent(h, { date, label }) {
